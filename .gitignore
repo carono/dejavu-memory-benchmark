@@ -1,0 +1,4 @@
+# local result runs — submit these to the leaderboard, don't commit them.
+# the reference example is tracked explicitly (see below).
+/results/*.json
+!/results/example-reference.json

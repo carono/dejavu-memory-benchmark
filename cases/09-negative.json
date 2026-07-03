@@ -1,0 +1,32 @@
+{
+  "situation": "negative",
+  "cases": [
+    {
+      "id": "negative-no-fact",
+      "title": "No matching fact — nothing is injected (fail-open)",
+      "seed": [
+        {
+          "slug": "nginx",
+          "statement": "nginx reload: docker exec nginx nginx -s reload.",
+          "kind": "env",
+          "salience": 0.7,
+          "cues": [ { "type": "keyword", "value": "nginx", "match": "substring" } ]
+        },
+        {
+          "slug": "redis",
+          "statement": "Redis runs on host port 6380.",
+          "kind": "env",
+          "salience": 0.5,
+          "cues": [ { "type": "keyword", "value": "redis", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "write a haiku about the ocean at dawn",
+          "expect_empty": true
+        }
+      ],
+      "note": "Nothing in the store relates to the prompt. The gate must inject nothing rather than force the nearest weak match — a false positive costs tokens and distracts. Precision over recall; the channel stays silent and fails open."
+    }
+  ]
+}

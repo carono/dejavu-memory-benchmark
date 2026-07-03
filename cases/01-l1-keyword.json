@@ -1,0 +1,43 @@
+{
+  "situation": "L1_keyword_recall",
+  "cases": [
+    {
+      "id": "l1-nginx-reload",
+      "title": "Exact keyword hits the fact",
+      "seed": [
+        {
+          "slug": "nginx",
+          "statement": "Reload nginx after editing a config: docker exec nginx nginx -s reload (test first with nginx -t).",
+          "kind": "env",
+          "salience": 0.7,
+          "cues": [
+            { "type": "keyword", "value": "nginx", "match": "substring" },
+            { "type": "command", "value": "nginx -s reload", "match": "substring" }
+          ]
+        },
+        {
+          "slug": "redis",
+          "statement": "Redis runs on host port 6380, no password by default.",
+          "kind": "env",
+          "salience": 0.5,
+          "cues": [ { "type": "keyword", "value": "redis", "match": "substring" } ]
+        },
+        {
+          "slug": "yii2-ar",
+          "statement": "In Yii2 use with(['relation']) to avoid N+1 on list queries.",
+          "kind": "rule",
+          "salience": 0.5,
+          "cues": [ { "type": "keyword", "value": "activerecord", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "reload nginx after editing the site config",
+          "expect_facts": ["nginx"],
+          "reject_facts": ["redis", "yii2-ar"]
+        }
+      ],
+      "note": "Baseline: an exact keyword ('nginx') and a command cue both point at the same fact; unrelated facts must stay silent."
+    }
+  ]
+}

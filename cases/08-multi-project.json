@@ -1,0 +1,42 @@
+{
+  "situation": "multi_project",
+  "cases": [
+    {
+      "id": "multi-project-push-rule",
+      "title": "A project's rule does not leak into another project",
+      "seed": [
+        {
+          "slug": "push-forbidden-a",
+          "statement": "In project site-a direct pushes to the repository are forbidden — open a PR.",
+          "kind": "rule",
+          "salience": 0.7,
+          "source_project": "site-a",
+          "cues": [ { "type": "keyword", "value": "push", "match": "substring" }, { "type": "keyword", "value": "repository", "match": "substring" } ]
+        },
+        {
+          "slug": "push-allowed-b",
+          "statement": "In project site-b direct pushes to main are fine.",
+          "kind": "rule",
+          "salience": 0.7,
+          "source_project": "site-b",
+          "cues": [ { "type": "keyword", "value": "push", "match": "substring" }, { "type": "keyword", "value": "repository", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "let me push to the repository",
+          "context": { "project": "site-a" },
+          "expect_facts": ["push-forbidden-a"],
+          "reject_facts": ["push-allowed-b"]
+        },
+        {
+          "prompt": "let me push to the repository",
+          "context": { "project": "site-b" },
+          "expect_facts": ["push-allowed-b"],
+          "reject_facts": ["push-forbidden-a"]
+        }
+      ],
+      "note": "Both rules share the cue 'push' but carry conflicting policy. A fact tagged source_project must only fire when that project is the active context — otherwise the forbidden-push rule of A would wrongly gate work in B. See task #430."
+    }
+  ]
+}

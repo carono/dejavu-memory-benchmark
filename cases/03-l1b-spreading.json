@@ -1,0 +1,41 @@
+{
+  "situation": "L1b_spreading",
+  "cases": [
+    {
+      "id": "l1b-nginx-to-phpfpm",
+      "title": "Spreading activation reaches a linked fact",
+      "seed": [
+        {
+          "slug": "nginx",
+          "statement": "nginx is the entry point on :80/:443; site configs live on the host in conf.d.",
+          "kind": "env",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "nginx", "match": "substring" } ],
+          "links": [ { "to": "php-fpm", "relation": "relates", "weight": 0.7 } ]
+        },
+        {
+          "slug": "php-fpm",
+          "statement": "PHP-FPM pools are addressed by container name inside webnet: fastcgi_pass php84:9000.",
+          "kind": "env",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "fastcgi_pass", "match": "substring" } ]
+        },
+        {
+          "slug": "redis",
+          "statement": "Redis runs on host port 6380.",
+          "kind": "env",
+          "salience": 0.5,
+          "cues": [ { "type": "keyword", "value": "redis", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "set up a new nginx vhost for the project",
+          "expect_facts": ["nginx", "php-fpm"],
+          "reject_facts": ["redis"]
+        }
+      ],
+      "note": "The prompt only names 'nginx'. 'php-fpm' has no direct cue hit but is one hop away via a relates link (weight 0.7 × decay 0.5 = 0.35 ≥ 0.3 threshold), so spreading activation surfaces it. 'redis' is unlinked and stays silent."
+    }
+  ]
+}

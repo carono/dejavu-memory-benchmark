@@ -1,0 +1,280 @@
+{
+    "benchmark": "dejavu-memory-benchmark",
+    "benchmark_version": "0.1.0",
+    "engine": "reference",
+    "engine_version": "0.1.0",
+    "submitter": "reference",
+    "generated_at": "2026-07-03T18:34:59+00:00",
+    "environment": {
+        "php": "8.4.19",
+        "os": "Linux"
+    },
+    "summary": {
+        "total": 11,
+        "passed": 11,
+        "failed": 0,
+        "score": 1,
+        "by_situation": {
+            "L1_keyword_recall": {
+                "total": 1,
+                "passed": 1
+            },
+            "L1c_semantic_recall": {
+                "total": 2,
+                "passed": 2
+            },
+            "L1b_spreading": {
+                "total": 1,
+                "passed": 1
+            },
+            "STM_vs_LTM": {
+                "total": 1,
+                "passed": 1
+            },
+            "domain_conflict": {
+                "total": 1,
+                "passed": 1
+            },
+            "staleness": {
+                "total": 1,
+                "passed": 1
+            },
+            "habituation": {
+                "total": 1,
+                "passed": 1
+            },
+            "multi_project": {
+                "total": 1,
+                "passed": 1
+            },
+            "negative": {
+                "total": 1,
+                "passed": 1
+            },
+            "personal_meta": {
+                "total": 1,
+                "passed": 1
+            }
+        }
+    },
+    "cases": [
+        {
+            "id": "l1-nginx-reload",
+            "situation": "L1_keyword_recall",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "reload nginx after editing the site config",
+                    "pushed": [
+                        "nginx"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "l1c-name-question",
+            "situation": "L1c_semantic_recall",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "what is my name?",
+                    "pushed": [
+                        "user-name"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "l1c-name-paraphrase",
+            "situation": "L1c_semantic_recall",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "how should I be called here?",
+                    "pushed": [
+                        "user-name"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "l1b-nginx-to-phpfpm",
+            "situation": "L1b_spreading",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "set up a new nginx vhost for the project",
+                    "pushed": [
+                        "nginx",
+                        "php-fpm"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "stm-overrides-ltm-port",
+            "situation": "STM_vs_LTM",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "what port does the project database use?",
+                    "pushed": [
+                        "db-port-stm"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "domain-python-vs-web",
+            "situation": "domain_conflict",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "how do I run the app?",
+                    "pushed": [
+                        "yii-run"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 1,
+                    "prompt": "how do I run the app?",
+                    "pushed": [
+                        "flask-run"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "stale-does-not-surface",
+            "situation": "staleness",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "how do we deploy this project?",
+                    "pushed": [
+                        "deploy-new"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "habituation-no-repeat",
+            "situation": "habituation",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "start a docker container for the worker",
+                    "pushed": [
+                        "docker-sock"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 1,
+                    "prompt": "now docker exec into it to check logs",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "multi-project-push-rule",
+            "situation": "multi_project",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "let me push to the repository",
+                    "pushed": [
+                        "push-forbidden-a"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 1,
+                    "prompt": "let me push to the repository",
+                    "pushed": [
+                        "push-allowed-b"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "negative-no-fact",
+            "situation": "negative",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "write a haiku about the ocean at dawn",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "personal-meta-cues",
+            "situation": "personal_meta",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "remind me of my name",
+                    "pushed": [
+                        "user-name"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 1,
+                    "prompt": "what is my age?",
+                    "pushed": [
+                        "user-age"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 2,
+                    "prompt": "what is my profession?",
+                    "pushed": [
+                        "user-job"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        }
+    ]
+}

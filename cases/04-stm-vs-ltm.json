@@ -1,0 +1,36 @@
+{
+  "situation": "STM_vs_LTM",
+  "cases": [
+    {
+      "id": "stm-overrides-ltm-port",
+      "title": "A fresh session fact overrides the old LTM value",
+      "seed": [
+        {
+          "slug": "db-port-ltm",
+          "statement": "The project database listens on port 5432.",
+          "kind": "project",
+          "tier": "ltm",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "database", "match": "substring" }, { "type": "keyword", "value": "port", "match": "substring" } ]
+        },
+        {
+          "slug": "db-port-stm",
+          "statement": "Correction this session: the database now listens on port 5533.",
+          "kind": "project",
+          "tier": "stm",
+          "salience": 0.6,
+          "supersedes": ["db-port-ltm"],
+          "cues": [ { "type": "keyword", "value": "database", "match": "substring" }, { "type": "keyword", "value": "port", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "what port does the project database use?",
+          "expect_facts": ["db-port-stm"],
+          "reject_facts": ["db-port-ltm"]
+        }
+      ],
+      "note": "Both facts match the same cues. The STM fact (captured this session) declares supersedes:[db-port-ltm], so the stale LTM value must be evicted rather than surfaced alongside — otherwise the agent sees two conflicting ports."
+    }
+  ]
+}

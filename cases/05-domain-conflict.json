@@ -1,0 +1,42 @@
+{
+  "situation": "domain_conflict",
+  "cases": [
+    {
+      "id": "domain-python-vs-web",
+      "title": "One signal, two domains — active domain wins",
+      "seed": [
+        {
+          "slug": "flask-run",
+          "statement": "Run the Flask app: flask run --debug on port 5000.",
+          "kind": "note",
+          "domain": "python",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "run", "match": "substring" }, { "type": "keyword", "value": "app", "match": "substring" } ]
+        },
+        {
+          "slug": "yii-run",
+          "statement": "Run the Yii2 console app: ./yii <controller>/<action>.",
+          "kind": "note",
+          "domain": "web",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "run", "match": "substring" }, { "type": "keyword", "value": "app", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "how do I run the app?",
+          "context": { "domain": "web" },
+          "expect_facts": ["yii-run"],
+          "reject_facts": ["flask-run"]
+        },
+        {
+          "prompt": "how do I run the app?",
+          "context": { "domain": "python" },
+          "expect_facts": ["flask-run"],
+          "reject_facts": ["yii-run"]
+        }
+      ],
+      "note": "The ambiguous signal 'run the app' matches both facts with equal salience. The active domain from harness context must disambiguate — the wrong-domain fact is a false positive that harms every turn. See task #418."
+    }
+  ]
+}

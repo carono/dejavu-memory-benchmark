@@ -1,0 +1,60 @@
+{
+  "situation": "personal_meta",
+  "cases": [
+    {
+      "id": "personal-meta-cues",
+      "title": "Personal facts recalled by data-type meta-cues",
+      "seed": [
+        {
+          "slug": "user-name",
+          "statement": "The user's name is Ivan.",
+          "kind": "user",
+          "salience": 0.8,
+          "cues": [
+            { "type": "keyword", "value": "ivan", "match": "substring" },
+            { "type": "keyword", "value": "name", "match": "substring" }
+          ]
+        },
+        {
+          "slug": "user-age",
+          "statement": "The user is 35 years old.",
+          "kind": "user",
+          "salience": 0.8,
+          "cues": [
+            { "type": "keyword", "value": "age", "match": "substring" },
+            { "type": "keyword", "value": "years old", "match": "substring" }
+          ]
+        },
+        {
+          "slug": "user-job",
+          "statement": "The user works as a software architect.",
+          "kind": "user",
+          "salience": 0.8,
+          "cues": [
+            { "type": "keyword", "value": "job", "match": "substring" },
+            { "type": "keyword", "value": "profession", "match": "substring" },
+            { "type": "keyword", "value": "work", "match": "substring" }
+          ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "remind me of my name",
+          "expect_facts": ["user-name"],
+          "reject_facts": ["user-age", "user-job"]
+        },
+        {
+          "prompt": "what is my age?",
+          "expect_facts": ["user-age"],
+          "reject_facts": ["user-name", "user-job"]
+        },
+        {
+          "prompt": "what is my profession?",
+          "expect_facts": ["user-job"],
+          "reject_facts": ["user-name", "user-age"]
+        }
+      ],
+      "note": "The prompts never contain the stored value ('Ivan', '35', 'architect'). Recall works only because consolidation attached data-type meta-cues (name / age / profession) to each personal fact. Each meta-cue must resolve to exactly its own fact, not the whole personal cluster. See task #436."
+    }
+  ]
+}

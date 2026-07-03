@@ -1,0 +1,35 @@
+{
+  "situation": "staleness",
+  "cases": [
+    {
+      "id": "stale-does-not-surface",
+      "title": "A fact marked stale never surfaces",
+      "seed": [
+        {
+          "slug": "deploy-old",
+          "statement": "Deploy with the legacy script deploy.sh on the bare-metal host.",
+          "kind": "project",
+          "status": "stale",
+          "salience": 0.7,
+          "cues": [ { "type": "keyword", "value": "deploy", "match": "substring" } ]
+        },
+        {
+          "slug": "deploy-new",
+          "statement": "Deploy via CI: push to main, the pipeline builds and ships the container.",
+          "kind": "project",
+          "status": "confirmed",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "deploy", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "how do we deploy this project?",
+          "expect_facts": ["deploy-new"],
+          "reject_facts": ["deploy-old"]
+        }
+      ],
+      "note": "Both facts match 'deploy' and the stale one even has higher salience, but status=stale removes it at the gate (L2). Only the confirmed replacement is delivered."
+    }
+  ]
+}

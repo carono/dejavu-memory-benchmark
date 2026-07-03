@@ -1,0 +1,53 @@
+{
+  "situation": "L1c_semantic_recall",
+  "cases": [
+    {
+      "id": "l1c-name-question",
+      "title": "Recall with no literal keyword overlap — direct question",
+      "seed": [
+        {
+          "slug": "user-name",
+          "statement": "The user's name is Ivan.",
+          "kind": "user",
+          "salience": 0.8,
+          "cues": [
+            { "type": "keyword", "value": "ivan", "match": "substring" },
+            { "type": "keyword", "value": "name", "match": "substring" },
+            { "type": "keyword", "value": "called", "match": "substring" }
+          ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "what is my name?",
+          "expect_facts": ["user-name"]
+        }
+      ],
+      "note": "The stored statement ('name is Ivan') shares no token with the question beyond the meta-cue 'name'. Projection (flow A) must emit data-type meta-cues, otherwise only the expensive semantic channel (L1c) could recover this. See task #436."
+    },
+    {
+      "id": "l1c-name-paraphrase",
+      "title": "Recall via a synonym cue, value absent from the prompt",
+      "seed": [
+        {
+          "slug": "user-name",
+          "statement": "The user's name is Ivan.",
+          "kind": "user",
+          "salience": 0.8,
+          "cues": [
+            { "type": "keyword", "value": "ivan", "match": "substring" },
+            { "type": "keyword", "value": "name", "match": "substring" },
+            { "type": "keyword", "value": "called", "match": "substring" }
+          ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "how should I be called here?",
+          "expect_facts": ["user-name"]
+        }
+      ],
+      "note": "A fresh session (no habituation): the prompt never says 'name' or 'Ivan', yet the synonym meta-cue 'called' recovers the fact. Demonstrates recall under paraphrase without a literal value match."
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "situation": "habituation",
+  "cases": [
+    {
+      "id": "habituation-no-repeat",
+      "title": "A fact already surfaced this session is suppressed next turn",
+      "seed": [
+        {
+          "slug": "docker-sock",
+          "statement": "The docker socket is mounted read-only; use the provided wrapper, not raw docker run.",
+          "kind": "env",
+          "salience": 0.7,
+          "cues": [ { "type": "keyword", "value": "docker", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "start a docker container for the worker",
+          "expect_facts": ["docker-sock"]
+        },
+        {
+          "prompt": "now docker exec into it to check logs",
+          "expect_suppressed": ["docker-sock"],
+          "expect_empty": true
+        }
+      ],
+      "note": "The same 'docker' cue fires on both turns, but after the fact is surfaced in turn 1 it is habituated: turn 2 must stay silent unless the activation is materially stronger. Prevents the same hint nagging every turn."
+    }
+  ]
+}
