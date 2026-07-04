@@ -1,0 +1,132 @@
+{
+  "situation": "stm_extraction",
+  "format": "dialog",
+  "cases": [
+    {
+      "id": "stm-scattered-long-dialog",
+      "title": "Facts scattered across a long session are all in STM by the end",
+      "seed": [],
+      "dialog": [
+        { "session": "s1", "role": "user", "content": "Hey, starting a new service today, wanted to think through the architecture with you." },
+        { "session": "s1", "role": "assistant", "content": "Sure — what is the service supposed to do?" },
+        { "session": "s1", "role": "user", "content": "It's an internal analytics API. I'll write it in Python 3.12, that's fixed by our platform team." },
+        { "session": "s1", "role": "assistant", "content": "Good, 3.12 gives you the newer typing features. What framework are you leaning toward?" },
+        { "session": "s1", "role": "user", "content": "Probably FastAPI, but I haven't decided. Let's not lock the framework yet." },
+        { "session": "s1", "role": "assistant", "content": "Fair. We can revisit the framework once the data model is clearer." },
+        { "session": "s1", "role": "user", "content": "Right. The main entities are events, users, and dashboards." },
+        { "session": "s1", "role": "assistant", "content": "How large is the event volume?" },
+        { "session": "s1", "role": "user", "content": "A few million rows a day, and growing." },
+        { "session": "s1", "role": "assistant", "content": "That volume shapes your storage choice a lot." },
+        { "session": "s1", "role": "user", "content": "Yeah. We'll store everything in PostgreSQL — the platform already runs a managed Postgres cluster." },
+        { "session": "s1", "role": "assistant", "content": "Postgres will handle that fine with good indexing and partitioning by day." },
+        { "session": "s1", "role": "user", "content": "Partitioning by day sounds right. I'll keep 90 days hot." },
+        { "session": "s1", "role": "assistant", "content": "Makes sense. Anything on the API auth side?" },
+        { "session": "s1", "role": "user", "content": "Bearer tokens, issued by our existing SSO. Nothing custom there." },
+        { "session": "s1", "role": "assistant", "content": "Good, one less thing to build." },
+        { "session": "s1", "role": "user", "content": "Let me sketch the dashboards endpoint next." },
+        { "session": "s1", "role": "assistant", "content": "Go ahead." },
+        { "session": "s1", "role": "user", "content": "Here's my real headache: the dashboards endpoint is slow. It fires one query per widget, so a 20-widget dashboard runs 20+ queries. Classic N+1 problem." },
+        { "session": "s1", "role": "assistant", "content": "That's the thing to fix — batch the widget queries or fold them into a single aggregate query." },
+        { "session": "s1", "role": "user", "content": "Agreed, I'll batch them." },
+        { "session": "s1", "role": "user", "content": "Ok, before I go — summarize what you've got on this project so far?" },
+        { "session": "s1", "role": "assistant", "content": "You're building an internal analytics API in Python 3.12, storing events in PostgreSQL partitioned by day, and the open problem is the N+1 on the dashboards endpoint." }
+      ],
+      "criteria": {
+        "must_remember": [
+          { "id": "language", "desc": "primary language is Python 3.12", "all_of": ["python"], "any_of": ["3.12", "python"], "kind": "project" },
+          { "id": "database", "desc": "storage is PostgreSQL", "any_of": ["postgres", "postgresql"] },
+          { "id": "problem", "desc": "open problem is the N+1 on the dashboards endpoint", "any_of": ["n+1", "one query per widget", "per widget"] }
+        ],
+        "must_not_remember": [
+          { "id": "framework", "desc": "FastAPI was explicitly left undecided — must not be stored as the chosen framework", "any_of": ["fastapi"] }
+        ]
+      },
+      "note": "A 23-turn session drops three load-bearing facts far apart: the language at turn 3, the database at turn 11, the problem at turn 19, and the recall at turn 22. STM must hold all three by session end regardless of the distance between them. FastAPI is a deliberate trap: the user names it once but immediately declines to commit ('haven't decided', 'let's not lock'), so a memory that confuses 'mentioned' with 'decided' will wrongly store it. Grading is on memory state after extraction, not on the assistant's summary text."
+    },
+    {
+      "id": "stm-correction-supersede",
+      "title": "A fact is stated, then corrected — STM keeps the corrected value, not the retracted one",
+      "seed": [],
+      "dialog": [
+        { "session": "s1", "role": "user", "content": "Setting up persistence for the new billing service." },
+        { "session": "s1", "role": "assistant", "content": "What database are you using?" },
+        { "session": "s1", "role": "user", "content": "MySQL — we have a MySQL 8 instance ready to go." },
+        { "session": "s1", "role": "assistant", "content": "MySQL 8 is solid for transactional billing." },
+        { "session": "s1", "role": "user", "content": "I'll model invoices, payments, and refunds." },
+        { "session": "s1", "role": "assistant", "content": "Will you need strong consistency across those?" },
+        { "session": "s1", "role": "user", "content": "Yes, definitely — it's money, so full ACID." },
+        { "session": "s1", "role": "assistant", "content": "Good. Any reporting needs on top of that?" },
+        { "session": "s1", "role": "user", "content": "Actually — wait, scratch the MySQL part. I mixed up two projects. This one is PostgreSQL, not MySQL. The billing service runs on Postgres 16." },
+        { "session": "s1", "role": "assistant", "content": "Understood — Postgres 16 for billing. Same ACID guarantees apply." },
+        { "session": "s1", "role": "user", "content": "Right. Let's continue with Postgres from here on." },
+        { "session": "s1", "role": "assistant", "content": "Will do." }
+      ],
+      "criteria": {
+        "must_remember": [
+          { "id": "db-correct", "desc": "the billing DB is PostgreSQL 16 (the corrected value)", "any_of": ["postgres", "postgresql"] }
+        ],
+        "must_not_remember": [
+          { "id": "db-wrong", "desc": "MySQL was retracted mid-session and must not remain the current DB", "any_of": ["mysql"] }
+        ]
+      },
+      "note": "The user commits to MySQL, four turns later retracts it explicitly ('scratch the MySQL part … this one is PostgreSQL, not MySQL'), and restates the real value. STM must supersede the retracted fact in-session: the active database is Postgres, and MySQL must not linger as the current choice. History may keep the retracted value flagged inactive — must_not_remember only checks the live view."
+    },
+    {
+      "id": "stm-directive-rule",
+      "title": "A directive dropped mid-conversation is captured as a standing rule",
+      "seed": [],
+      "dialog": [
+        { "session": "s1", "role": "user", "content": "Reviewing a teammate's PR for the analytics service." },
+        { "session": "s1", "role": "assistant", "content": "What are you looking at?" },
+        { "session": "s1", "role": "user", "content": "Some naming is inconsistent between modules." },
+        { "session": "s1", "role": "assistant", "content": "Naming drift is worth nailing down early." },
+        { "session": "s1", "role": "user", "content": "Please remember this as a project rule: always use snake_case for Python identifiers and database columns." },
+        { "session": "s1", "role": "assistant", "content": "Noted — snake_case for Python identifiers and DB columns, as a standing rule." },
+        { "session": "s1", "role": "user", "content": "The frontend is a separate repo; their JS stays camelCase, that's their call, not our backend rule." },
+        { "session": "s1", "role": "assistant", "content": "Understood, the rule is scoped to the backend." },
+        { "session": "s1", "role": "user", "content": "Also this PR uses tabs; we use 4 spaces, but that's already enforced by the linter so no need to remember it separately." },
+        { "session": "s1", "role": "assistant", "content": "Right, the linter already covers indentation." },
+        { "session": "s1", "role": "user", "content": "Good. Just make sure the snake_case rule sticks." },
+        { "session": "s1", "role": "assistant", "content": "It will." }
+      ],
+      "criteria": {
+        "must_remember": [
+          { "id": "rule", "desc": "standing backend rule: use snake_case for Python identifiers and DB columns", "all_of": ["snake_case"], "kind": "rule" }
+        ],
+        "must_not_remember": [
+          { "id": "not-our-rule", "desc": "camelCase belongs to the separate frontend and must not be stored as OUR backend rule", "all_of": ["camelcase"] }
+        ]
+      },
+      "note": "An explicit directive ('remember this as a project rule … snake_case') must be captured with rule intent, not as a passing remark — hence the kind:'rule' check. Two distractors sit next to it: the frontend's camelCase (explicitly *not* our rule) and the tabs/4-spaces mention (explicitly delegated to the linter, not a rule to store). A good STM captures exactly one rule and does not manufacture a camelCase rule from a comment about another team's repo."
+    },
+    {
+      "id": "stm-distractors-single-decision",
+      "title": "Many options are floated, one is decided — STM stores only the decision",
+      "seed": [],
+      "dialog": [
+        { "session": "s1", "role": "user", "content": "I need a cache layer for the analytics API." },
+        { "session": "s1", "role": "assistant", "content": "What are you considering?" },
+        { "session": "s1", "role": "user", "content": "Maybe Redis, maybe Memcached, I've also seen teams use Hazelcast for this." },
+        { "session": "s1", "role": "assistant", "content": "Each has tradeoffs — Redis is the most common default." },
+        { "session": "s1", "role": "user", "content": "I also thought about just using Postgres unlogged tables as a poor-man's cache." },
+        { "session": "s1", "role": "assistant", "content": "That can work for simple cases but it lacks proper TTL semantics." },
+        { "session": "s1", "role": "user", "content": "Yeah. And a colleague keeps pushing KeyDB as a Redis drop-in replacement." },
+        { "session": "s1", "role": "assistant", "content": "KeyDB is API-compatible, though far fewer teams run it in production." },
+        { "session": "s1", "role": "user", "content": "Ok — decision made: we'll use Redis 7 for caching. Forget the other options." },
+        { "session": "s1", "role": "assistant", "content": "Redis 7 it is." },
+        { "session": "s1", "role": "user", "content": "Set that in stone for this project." },
+        { "session": "s1", "role": "assistant", "content": "Locked in — Redis 7 as the cache." }
+      ],
+      "criteria": {
+        "must_remember": [
+          { "id": "cache-decision", "desc": "the chosen cache is Redis 7", "all_of": ["redis"], "any_of": ["redis 7", "redis"] }
+        ],
+        "must_not_remember": [
+          { "id": "distractor-memcached", "desc": "Memcached was only brainstormed, not chosen", "any_of": ["memcached"] },
+          { "id": "distractor-hazelcast", "desc": "Hazelcast was only brainstormed, not chosen", "any_of": ["hazelcast"] }
+        ]
+      },
+      "note": "Five cache candidates are floated (Redis, Memcached, Hazelcast, Postgres unlogged tables, KeyDB); exactly one is decided ('decision made: we'll use Redis 7'). STM should record the *decision*, not every option the user thought aloud about. The rejected alternatives are noise — storing Memcached or Hazelcast as project facts means the memory cannot distinguish deliberation from commitment. KeyDB is intentionally left out of the assertions: it shares an API with Redis and a store may reasonably note it as a rejected drop-in, so it is neither required nor forbidden."
+    }
+  ]
+}

@@ -11,9 +11,10 @@ protocol and compared against the vanilla **baseline** (no memory, 1/11) and the
 > situations (11–14: long-session, cross-session, scattered-facts, temporal) that are
 > mechanism-neutral and *do* play to a good pull/RAG/graph system's strengths — see the
 > [scope disclaimer in the README](../README.md#general-memory-cases-situations-1114). The
-> third-party engines below have **not yet been re-run** on the general-memory layer, so
-> their scores here are push-paradigm only; a fuller picture will grade them on all 21
-> cases. Read `6/11` etc. as "6 of the 10 push situations", not "6 of everything memory".
+> `x/11` scores in *this* scoreboard are push-paradigm only — read `6/11` as "6 of the 10
+> push situations", not "6 of everything memory". The same engines have now **also** been
+> graded on the four general-memory situations (10 cases); those results are in
+> [§ v0.2.0 general-memory layer](#v020-general-memory-layer-task-483) below.
 
 All runs are **fully local, no external API key**: embeddings `bge-m3` (1024-dim)
 and LLM `qwen2.5:7b` via the local Ollama server. Adapters live in `adapters/`
@@ -156,3 +157,131 @@ step, and on the same fair local 7B that step is unreliable enough to sink recal
 baseline (1/11). The lesson cuts both ways: the right mechanism behind a fragile extractor
 loses to a plain retriever, and a symbolic cue/gate path (dejavu) buys reliability an
 extract-then-graph pipeline can't guarantee on commodity hardware.
+
+---
+
+## v0.2.0 general-memory layer (task #483)
+
+Benchmark `0.2.0` adds four **general-memory** situations (11–14) — a broader,
+mechanism-neutral layer that grades *any* memory system on recall/precision goals
+rather than on push internals (see the
+[README scope note](../README.md#general-memory-cases-situations-1114)). All five
+engines above were re-run on these **10 new cases** on the same fully-local footing
+(`bge-m3` embeddings, `qwen2.5:7b` LLM, Ollama). Runner:
+
+```bash
+php runner/run.php --engine=push \
+  --situation=long_session_recall,cross_session_recall,scattered_facts,temporal_relevance \
+  --out=results/<engine>-v0.2.0.json
+```
+
+### Push core vs general-memory, side by side
+
+| engine | v0.1.0 (push, 11 cases) | v0.2.0 general (10 cases) |
+|--------|:-----------------------:|:-------------------------:|
+| baseline (vanilla, no memory) | 1/11 | **0/10** |
+| rag-ollama (generic vector-RAG) | 5/11 | **2/10** |
+| LangChain (FAISS + bge-m3) | 5/11 | **2/10** |
+| mem0 2.0.11 (Chroma + Ollama) | 6/11 | **1/10** |
+| Zep / Graphiti 0.29.2 (Neo4j + Ollama) | 1/11 | **0/10** |
+| reference (dejavu) | 11/11 | **10/10** |
+
+### Per-case scoreboard (10 general-memory cases)
+
+The 10 cases: **11** long-session recall · **12a** cross-session basic recall ·
+**12b** habituation resets per session · **12c** role updated in a later session ·
+**12d** multi-session history aggregate · **13a** scattered progressive profile ·
+**13b** scattered contradiction · **14a** temporal job-change · **14b** schedule
+supersede · **14c** latest-value-wins.
+
+| engine | score | pass | 11 | 12a | 12b | 12c | 12d | 13a | 13b | 14a | 14b | 14c |
+|--------|:-----:|:----:|:--:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| baseline (no memory)        | **0.000** | 0/10 | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| **Zep / Graphiti** 0.29.2   | **0.000** | 0/10 | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| mem0 2.0.11                 | **0.100** | 1/10 | ✗ | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| rag-ollama                  | **0.200** | 2/10 | ✗ | ✓ | ~ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| LangChain (FAISS)           | **0.200** | 2/10 | ✗ | ✓ | ~ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
+| reference (dejavu)          | **1.000** | 10/10 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+`~` = the case passes but by **threshold luck**, not by a mechanism: turn 2 of the
+habituation-reset case ("*actually, another coffee suggestion?*") happened to score
+below τ and stay silent — the same artifact as case 07 in the push core, not real
+per-session suppression (mem0, with a slightly higher normalized score, re-pushed and
+failed it honestly).
+
+### Why the RAG libraries score *lower* here than on the push core
+
+The general-memory layer is billed as mechanism-neutral and RAG-friendly — yet
+rag/LangChain drop from 5/11 to 2/10 and mem0 from 6/11 to 1/10. That is not a
+contradiction; it is the **case mix**. Of the 10 general-memory cases, **6 require
+supersede** (12c role-update, 13b contradiction, 14a/b/c temporal — an older value
+must be silently retired when a newer one lands) and **2 require aggregating on a
+contentless meta-cue** ("*what do you know about me?*" / "*summarize everything about
+me*"). Only **12a basic recall** is pure RAG home turf, and **12b** is the lucky one.
+
+- **Supersede (6 cases) — structural RAG miss.** A pull store returns *both* the old
+  and new value ranked by similarity: on "*where do I work now?*" every RAG engine
+  pushed `[tp-job-new, tp-job-old]` and failed the `reject_facts` on the stale one.
+  Same for the June/August release, the 80/76 kg weight, the QA→backend role, the
+  Moscow→Piter correction. RAG has no "the newer observation retires the older" — it
+  ranks by distance, and both readings are equally close to the query. This is the
+  exact push-core case 04 (STM/supersede) failure, now spread across six cases.
+- **Meta-cue aggregation (13a, 12d) — no anchor to match.** "*what do you know about
+  me?*" carries no keyword and no strong embedding signal, so the thresholded retriever
+  returns **nothing** — it cannot connect three scattered facts under one contentless
+  question. (Note: on the *stating* turns RAG over-fires on the user's own statements —
+  e.g. mem0 pushed all three facts while the user was still introducing them — a false
+  positive a push engine avoids; those turns are ungraded, so it costs nothing here, but
+  it is the mirror image of the aggregation miss.)
+- **Long-session (11) — recall *and* precision both bite.** The name query fell under τ
+  (recall miss at distance); the city query bled the look-alike distractor
+  `ls-colleague-city` (teammate in Moscow) next to the user's own Piter. A short-window
+  or naive-similarity store fails one or the other; here it failed both.
+
+**mem0 loses its one edge.** In the push core mem0's +1 over vanilla RAG was entirely
+metadata filtering on `domain`/`project` (cases 05/08). The general-memory cases carry
+**no** domain/project context, so that filter is inert — mem0 collapses to plain
+recall (1/10) and actually lands *below* rag/LangChain because it did not catch the
+lucky threshold pass on 12b.
+
+### Zep / Graphiti on temporal: 0/3 on its home turf
+
+The most anticipated result — Graphiti's temporal knowledge graph *is* built for
+supersede-by-time (14a/b/c) — and it scored **0/10 overall, 0/3 on temporal**. The
+mechanism never fired, for the reason already diagnosed in the push core: **extraction
+collapses upstream of the graph.** On the local 7B, short factual statements yield
+**zero edges** — "*The user works at Yandex.*", "*The user drinks an oat-milk latte.*",
+and the supersede-pair updates ("*Later update: now works at Google.*", "*release moved
+to August.*", "*weighs 76 kg.*") all produced no retrievable edge, so the query returned
+silence and missed the expected new value. The temporal-invalidation logic — the one
+mechanism here no other library has — cannot invalidate an edge that was never created.
+
+- **11 long-session — extraction bias, no gate, no habituation.** Only the three
+  *richest* statements extracted edges (`ls-stack` "PHP/Yii2", `ls-colleague-city`
+  "teammate Dmitry in Moscow", `ls-legacy-stack` "legacy Python service"); the short
+  ones (name, city, hobby, coffee) never entered the graph. Worse, hybrid search then
+  returned that **same trio on every single turn** — including the 30 neutral
+  "ok"/"thanks" turns — showing no relevance discrimination and no session habituation.
+  On the graded queries it missed name/city/hobby/coffee (not extracted) and on the
+  stack query it bled the Python distractor (`reject_facts` fail).
+- **12a basic recall — the floor, failed on extraction.** "*The user works at Yandex.*"
+  → 0 edges → silent. Graphiti fails the single most basic recall that every RAG engine
+  clears trivially, because RAG embeds the raw statement with no extraction step to fail.
+
+This is the v0.1.0 finding, sharpened: the temporal graph is architecturally the closest
+design to dejavu's push model and owns the exact mechanism the general-memory temporal
+cases probe — but behind a commodity-7B extractor it never gets a clean fact set, so it
+sits at **baseline (0/10)**, *below* a plain vector store (2/10). A frontier extraction
+model would very likely surface the edges and let the temporal logic win 14a/b/c; on the
+same fair local footing as every other adapter, it does not.
+
+### Takeaway
+
+The general-memory layer does **not** rescue pull-RAG — it exposes the same wall from a
+different angle. Where the push core needed a symbolic gate for graph/STM/staleness/
+habituation, the general-memory cases need it for **supersede-by-time** (6 of 10) and
+**precise meta-cue aggregation** (2 of 10) — mechanisms a similarity retriever still
+lacks. RAG clears exactly the recall case it was built for (12a) and nothing that needs
+retiring a stale value or connecting a contentless question. The dejavu reference clears
+all 10 with the same cue/gate/supersede machinery it uses on the push core — the two
+layers are the same mechanism gap measured on two different case families.

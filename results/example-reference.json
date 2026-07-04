@@ -1,75 +1,100 @@
 {
     "benchmark": "dejavu-memory-benchmark",
-    "benchmark_version": "0.2.0",
+    "benchmark_version": "0.3.0",
     "engine": "reference",
-    "engine_version": "0.2.0",
+    "engine_version": "0.3.0",
     "submitter": "reference",
-    "generated_at": "2026-07-04T07:19:54+00:00",
+    "generated_at": "2026-07-04T15:56:12+00:00",
     "environment": {
         "php": "8.4.19",
         "os": "Linux"
     },
     "summary": {
-        "total": 21,
+        "total": 30,
         "passed": 21,
         "failed": 0,
+        "skipped": 9,
         "score": 1,
         "by_situation": {
             "L1_keyword_recall": {
                 "total": 1,
-                "passed": 1
+                "passed": 1,
+                "skipped": 0
             },
             "L1c_semantic_recall": {
                 "total": 2,
-                "passed": 2
+                "passed": 2,
+                "skipped": 0
             },
             "L1b_spreading": {
                 "total": 1,
-                "passed": 1
+                "passed": 1,
+                "skipped": 0
             },
             "STM_vs_LTM": {
                 "total": 1,
-                "passed": 1
+                "passed": 1,
+                "skipped": 0
             },
             "domain_conflict": {
                 "total": 1,
-                "passed": 1
+                "passed": 1,
+                "skipped": 0
             },
             "staleness": {
                 "total": 1,
-                "passed": 1
+                "passed": 1,
+                "skipped": 0
             },
             "habituation": {
                 "total": 1,
-                "passed": 1
+                "passed": 1,
+                "skipped": 0
             },
             "multi_project": {
                 "total": 1,
-                "passed": 1
+                "passed": 1,
+                "skipped": 0
             },
             "negative": {
                 "total": 1,
-                "passed": 1
+                "passed": 1,
+                "skipped": 0
             },
             "personal_meta": {
                 "total": 1,
-                "passed": 1
+                "passed": 1,
+                "skipped": 0
             },
             "long_session_recall": {
                 "total": 1,
-                "passed": 1
+                "passed": 1,
+                "skipped": 0
             },
             "cross_session_recall": {
                 "total": 4,
-                "passed": 4
+                "passed": 4,
+                "skipped": 0
             },
             "scattered_facts": {
                 "total": 2,
-                "passed": 2
+                "passed": 2,
+                "skipped": 0
             },
             "temporal_relevance": {
                 "total": 3,
-                "passed": 3
+                "passed": 3,
+                "skipped": 0
+            },
+            "stm_extraction": {
+                "total": 4,
+                "passed": 0,
+                "skipped": 4
+            },
+            "ltm_sleep": {
+                "total": 5,
+                "passed": 0,
+                "skipped": 5
             }
         }
     },
@@ -786,6 +811,78 @@
                     "failures": []
                 }
             ]
+        },
+        {
+            "id": "stm-scattered-long-dialog",
+            "situation": "stm_extraction",
+            "passed": false,
+            "skipped": true,
+            "skip_reason": "needs a consolidating engine or a --snapshots entry",
+            "turns": []
+        },
+        {
+            "id": "stm-correction-supersede",
+            "situation": "stm_extraction",
+            "passed": false,
+            "skipped": true,
+            "skip_reason": "needs a consolidating engine or a --snapshots entry",
+            "turns": []
+        },
+        {
+            "id": "stm-directive-rule",
+            "situation": "stm_extraction",
+            "passed": false,
+            "skipped": true,
+            "skip_reason": "needs a consolidating engine or a --snapshots entry",
+            "turns": []
+        },
+        {
+            "id": "stm-distractors-single-decision",
+            "situation": "stm_extraction",
+            "passed": false,
+            "skipped": true,
+            "skip_reason": "needs a consolidating engine or a --snapshots entry",
+            "turns": []
+        },
+        {
+            "id": "ltm-sleep-basic-recall",
+            "situation": "ltm_sleep",
+            "passed": false,
+            "skipped": true,
+            "skip_reason": "needs a consolidating engine or a --snapshots entry",
+            "turns": []
+        },
+        {
+            "id": "ltm-sleep-update-supersede",
+            "situation": "ltm_sleep",
+            "passed": false,
+            "skipped": true,
+            "skip_reason": "needs a consolidating engine or a --snapshots entry",
+            "turns": []
+        },
+        {
+            "id": "ltm-sleep-link-chain",
+            "situation": "ltm_sleep",
+            "passed": false,
+            "skipped": true,
+            "skip_reason": "needs a consolidating engine or a --snapshots entry",
+            "turns": []
+        },
+        {
+            "id": "ltm-sleep-derived-fact",
+            "situation": "ltm_sleep",
+            "passed": false,
+            "skipped": true,
+            "skip_reason": "needs a consolidating engine or a --snapshots entry",
+            "turns": []
+        },
+        {
+            "id": "ltm-sleep-cross-session-contradiction",
+            "situation": "ltm_sleep",
+            "passed": false,
+            "skipped": true,
+            "skip_reason": "needs a consolidating engine or a --snapshots entry",
+            "turns": []
         }
     ]
 }

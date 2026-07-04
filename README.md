@@ -61,6 +61,26 @@ in one case, so an early fact is queried far downstream — and **multi-session*
 id on turns that, when it changes, crosses a session boundary (resets per-session habituation,
 keeps long-term facts). See [`cases/README.md`](cases/README.md#sessions-multi-turn--multi-session).
 
+### STM/LTM cases (situations 15–16) — a second axis
+
+> **Different axis.** Situations 01–14 grade the **push path** (what the channel delivers on a
+> turn). Situations 15–16 grade the **memory state** instead: after reading a whole
+> conversation and consolidating it (an LLM "sleep"), what is actually stored? Each case ships
+> a raw `dialog` (role/content) and `criteria` on the memory **after extraction/consolidation**
+> — never on the model's reply. Mechanism-neutral and, by the honesty rule, **not tuned to any
+> engine**: a case a simple engine can't satisfy stays as written.
+
+| # | Situation | What it proves |
+|---|-----------|----------------|
+| 15 | **STM extraction** | Over a 12–23-turn session: facts scattered far apart, an in-session correction, an explicit "remember this rule" directive, and brainstorm distractors all resolve to the right short-term memory by session end. |
+| 16 | **LTM sleep** | Across sessions with a consolidation between them: a fact survives the sleep and recalls later; an update supersedes the old value; a cross-session contradiction lets the newer win; a dependency chain and a derived fact are stored as *structure* (links / derived_from). |
+
+Dialog cases run only against an engine that implements `ConsolidatingEngine`, or with a
+`--snapshots=FILE` map of `caseId → memoryItem[]` that any external memory can produce. Without
+either, they are **skipped** — reported N/A, never a failure, and excluded from the score. The
+built-in reference engine is a symbolic push model, not a text extractor, so it skips them.
+See [`runner/README.md`](runner/README.md#grading-stmltm-dialog-cases).
+
 ## Layout
 
 ```
@@ -82,13 +102,17 @@ php runner/run.php --situation=habituation
 Expected on a clean checkout:
 
 ```
-21/21 cases passed · score 1.0000
+21/21 gradable cases passed · score 1.0000 · 9 skipped
 ```
 
-Grade only the push-paradigm core or only the general-memory layer by situation:
+The 9 skipped cases are the STM/LTM dialog cases (situations 15–16): the reference engine does
+not consolidate free text, so they need a `ConsolidatingEngine` or a `--snapshots` file (see
+[grading STM/LTM](runner/README.md#grading-stmltm-dialog-cases)). Grade only one axis or one
+situation:
 
 ```bash
 php runner/run.php --situation=long_session_recall     # one general-memory situation
+php runner/run.php --situation=stm_extraction,ltm_sleep --snapshots=my-memory.json
 ```
 
 The **reference engine** (`runner/lib/ReferenceEngine.php`) is a readable model of layers
@@ -166,15 +190,31 @@ MIT.
 **multi-turn** (много ходов в кейсе) и **multi-session** (поле `session` на ходах — смена id
 пересекает границу сессии и сбрасывает per-session habituation, сохраняя долговременные факты).
 
+**Вторая ось — состояние памяти (ситуации 15–16, задача #487).** 01–14 меряют **push-путь** (что
+канал выдал за ход). 15–16 меряют **состояние памяти**: после прочтения всего диалога и
+консолидации («сон» на LLM) — что реально сохранилось? Каждый кейс несёт сырой `dialog`
+(role/content) и `criteria` на память **после извлечения/консолидации**, а не на ответ модели.
+15 **STM extraction** (рассеянные по 12–23 ходам факты, коррекция внутри сессии, директива
+«запомни правило», дистракторы-брейншторм) · 16 **LTM sleep** (факт переживает сон и вспоминается
+позже; обновление вытесняет старое через supersede; кросс-сессионное противоречие — побеждает
+новое; цепочка зависимостей и выведенный факт сохраняются как *структура* — links / derived_from).
+Механизмо-нейтральны и по правилу честности **не подгоняются под движок**: кейс, который простой
+движок не берёт, остаётся как есть. Диалоговые кейсы грейдятся только при движке с
+`ConsolidatingEngine` или при файле `--snapshots` (`caseId → memoryItem[]`), иначе — **skipped**
+(N/A, не провал, вне знаменателя). Референс-движок — символьная push-модель, не экстрактор
+текста, поэтому их пропускает.
+
 **Запуск** (нужен PHP 7.4+ с `mbstring`, без Composer и БД):
 
 ```bash
 php runner/run.php          # все кейсы на встроенном референс-движке
 php runner/run.php -v       # с выводом каждого хода
 php runner/run.php --situation=cross_session_recall   # только одну ситуацию
+php runner/run.php --snapshots=my-memory.json         # + грейд диалоговых STM/LTM кейсов
 ```
 
-На чистом чекауте — `21/21 cases passed · score 1.0000`. Референс-движок
+На чистом чекауте — `21/21 gradable cases passed · score 1.0000 · 9 skipped` (9 диалоговых
+кейсов пропущены — референс-движок их не консолидирует). Референс-движок
 (`runner/lib/ReferenceEngine.php`) — читаемая модель слоёв L0–L3 и одновременно нижняя планка,
 которую обязана взять любая реальная реализация.
 

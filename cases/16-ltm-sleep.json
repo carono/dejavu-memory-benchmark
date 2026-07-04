@@ -1,0 +1,136 @@
+{
+  "situation": "ltm_sleep",
+  "format": "dialog",
+  "cases": [
+    {
+      "id": "ltm-sleep-basic-recall",
+      "title": "A fact from session 1 survives the sleep and is recalled in session 2",
+      "seed": [],
+      "dialog": [
+        { "session": "s1", "role": "user", "content": "Kicking off the \"atlas\" project. It's a geospatial data pipeline." },
+        { "session": "s1", "role": "assistant", "content": "Sounds interesting — what's the source data?" },
+        { "session": "s1", "role": "user", "content": "GPS traces from delivery vehicles, ingested hourly in batches." },
+        { "session": "s1", "role": "assistant", "content": "Hourly batch ingestion, got it." },
+        { "session": "s1", "role": "user", "content": "The pipeline itself is written in Go, by the way — that's our team standard for pipelines." },
+        { "session": "s1", "role": "assistant", "content": "Go is a good fit for throughput-heavy pipelines." },
+        { "session": "s1", "role": "user", "content": "That's all for today, thanks." },
+        { "session": "s2", "role": "user", "content": "Back on atlas. Remind me — what language is the pipeline written in?" },
+        { "session": "s2", "role": "assistant", "content": "The atlas pipeline is written in Go." }
+      ],
+      "criteria": {
+        "must_remember": [
+          { "id": "project", "desc": "atlas is a geospatial data pipeline", "any_of": ["atlas"] },
+          { "id": "language", "desc": "the pipeline is written in Go", "any_of": ["written in go", "language is go", "in go", "golang"] },
+          { "id": "source", "desc": "source data is hourly GPS traces from delivery vehicles", "any_of": ["gps"] }
+        ]
+      },
+      "note": "The baseline for a sleeping memory: facts stated in session 1 must be consolidated into LTM (during the sleep at the s1→s2 boundary) and still be there when session 2 opens. A session-scoped store that forgets everything at session end fails this. The s2 recall turn is present for realism only — grading looks at LTM contents after consolidation, not at the assistant's reply."
+    },
+    {
+      "id": "ltm-sleep-update-supersede",
+      "title": "A later session updates a consolidated fact — the consolidator supersedes the old value",
+      "seed": [
+        {
+          "slug": "portal-php-old",
+          "statement": "The portal web project runs on PHP 8.1.",
+          "kind": "project",
+          "tier": "ltm"
+        }
+      ],
+      "dialog": [
+        { "session": "s2", "role": "user", "content": "Back on the \"portal\" web project again." },
+        { "session": "s2", "role": "assistant", "content": "Welcome back — what's changed?" },
+        { "session": "s2", "role": "user", "content": "We finished the runtime upgrade. Portal now runs on PHP 8.4, not 8.1 anymore." },
+        { "session": "s2", "role": "assistant", "content": "Great — PHP 8.4 brings solid performance gains." },
+        { "session": "s2", "role": "user", "content": "Update everything accordingly; the old 8.1 note is stale now." },
+        { "session": "s2", "role": "assistant", "content": "Done — portal is on PHP 8.4 now." }
+      ],
+      "criteria": {
+        "must_remember": [
+          { "id": "php-new", "desc": "portal now runs on PHP 8.4 (current value)", "any_of": ["8.4"] }
+        ],
+        "must_not_remember": [
+          { "id": "php-old", "desc": "PHP 8.1 is the old value and must no longer be the current runtime", "any_of": ["8.1"] }
+        ]
+      },
+      "note": "The seed represents what an earlier session's sleep already consolidated: portal on PHP 8.1. Session 2 reports the upgrade. The consolidator must supersede the old value rather than store two contradictory runtimes side by side. After the sleep, the live view holds PHP 8.4 and PHP 8.1 is retired. The old value may survive as inactive history — must_not_remember only inspects the active view."
+    },
+    {
+      "id": "ltm-sleep-link-chain",
+      "title": "Consolidation stores a dependency chain: project → php-fpm → nginx",
+      "seed": [],
+      "dialog": [
+        { "session": "s1", "role": "user", "content": "Documenting the \"shopfront\" deployment so we don't lose it." },
+        { "session": "s1", "role": "assistant", "content": "Go ahead." },
+        { "session": "s1", "role": "user", "content": "Nginx is the entry point — it terminates TLS on 443." },
+        { "session": "s1", "role": "assistant", "content": "Standard reverse-proxy setup." },
+        { "session": "s1", "role": "user", "content": "Nginx forwards all PHP requests to php-fpm over a unix socket." },
+        { "session": "s1", "role": "assistant", "content": "So nginx depends on the php-fpm pool being up." },
+        { "session": "s1", "role": "user", "content": "Exactly. And the shopfront app itself runs inside that php-fpm pool." },
+        { "session": "s1", "role": "assistant", "content": "So shopfront runs in php-fpm, and php-fpm sits behind nginx — one serving chain." },
+        { "session": "s1", "role": "user", "content": "Right, that's the chain. Remember how they connect, I'll ask about shopfront later." },
+        { "session": "s1", "role": "assistant", "content": "Noted the shopfront → php-fpm → nginx dependency chain." }
+      ],
+      "criteria": {
+        "must_remember": [
+          { "id": "node-nginx", "desc": "nginx terminates TLS and is the entry point", "any_of": ["nginx"] },
+          { "id": "node-fpm", "desc": "php-fpm pool serves PHP requests", "any_of": ["php-fpm"] },
+          { "id": "node-shopfront", "desc": "shopfront app runs in the php-fpm pool", "any_of": ["shopfront"] }
+        ],
+        "relations": [
+          { "kind": "links", "id": "shopfront-to-fpm", "desc": "shopfront links to php-fpm (it runs in the pool)", "from_any_of": ["shopfront"], "to_all_of": ["php-fpm"] },
+          { "kind": "links", "id": "fpm-to-nginx", "desc": "php-fpm links to nginx (it sits behind the proxy)", "from_any_of": ["php-fpm"], "to_all_of": ["nginx"] }
+        ]
+      },
+      "note": "The user describes an infrastructure chain across several turns and asks that the *connections* be remembered. A good memory does not just store three isolated nodes — it stores the edges, so a later query about shopfront can spread to php-fpm and nginx. The relation checks look for link edges in the consolidated graph. An engine that keeps no relational structure will store the three nodes (passing must_remember) but fail the link assertions — an honest, mechanism-neutral read of whether the chain was captured."
+    },
+    {
+      "id": "ltm-sleep-derived-fact",
+      "title": "Consolidation derives a new fact from two stated facts (derived_from)",
+      "seed": [],
+      "dialog": [
+        { "session": "s1", "role": "user", "content": "New project \"semantica\" — semantic search over our internal docs." },
+        { "session": "s1", "role": "assistant", "content": "Semantic search means embeddings; where will you store the vectors?" },
+        { "session": "s1", "role": "user", "content": "The app is a Yii2 app, and our database is PostgreSQL 17." },
+        { "session": "s1", "role": "assistant", "content": "Yii2 on Postgres — a common stack here." },
+        { "session": "s1", "role": "user", "content": "We need to store and query vector embeddings for the search feature." },
+        { "session": "s1", "role": "assistant", "content": "Since you're already on PostgreSQL, the natural choice is the pgvector extension — no separate vector database needed." },
+        { "session": "s1", "role": "user", "content": "Makes sense — enable pgvector on the existing Postgres." },
+        { "session": "s1", "role": "assistant", "content": "So it follows from your stack: Yii2 + PostgreSQL + embeddings ⇒ use pgvector." },
+        { "session": "s1", "role": "user", "content": "Agreed, that's the plan." }
+      ],
+      "criteria": {
+        "must_remember": [
+          { "id": "conclusion", "desc": "the project should use the pgvector extension", "any_of": ["pgvector"] }
+        ],
+        "relations": [
+          { "kind": "derived_from", "id": "pgvector-inference", "desc": "the pgvector decision is derived from using Yii2 and PostgreSQL", "conclusion_any_of": ["pgvector"], "from_all_of": ["yii2", "postgres"] }
+        ]
+      },
+      "note": "Two independently-stated facts (Yii2 app, PostgreSQL 17) plus the embeddings requirement imply a third that was never stated as a standalone fact: use pgvector. A memory that only records what was literally said stores 'pgvector' as a plain fact and passes must_remember. The derived_from check is stricter: it asks whether the conclusion is linked back to the facts it was inferred from — the signature of a memory that consolidates knowledge rather than transcribing it. This is the most implementation-dependent case; per benchmark policy it stays as-is even if simple engines cannot satisfy the derivation edge."
+    },
+    {
+      "id": "ltm-sleep-cross-session-contradiction",
+      "title": "Two contradicting facts from different sessions — the newer one wins",
+      "seed": [],
+      "dialog": [
+        { "session": "s1", "role": "user", "content": "For the \"ledger\" service, our primary datastore is MongoDB." },
+        { "session": "s1", "role": "assistant", "content": "A document model for ledger — noted." },
+        { "session": "s1", "role": "user", "content": "That's the plan for now." },
+        { "session": "s3", "role": "user", "content": "Big change on ledger: we ripped out MongoDB completely. Everything is on PostgreSQL now — it's the single source of truth." },
+        { "session": "s3", "role": "assistant", "content": "Understood — PostgreSQL is now ledger's primary datastore." },
+        { "session": "s3", "role": "user", "content": "Yeah, Mongo is gone for good." },
+        { "session": "s3", "role": "assistant", "content": "Recorded: ledger runs on PostgreSQL; MongoDB is retired." }
+      ],
+      "criteria": {
+        "must_remember": [
+          { "id": "current-db", "desc": "ledger's current primary datastore is PostgreSQL", "any_of": ["postgres", "postgresql"] }
+        ],
+        "must_not_remember": [
+          { "id": "old-db", "desc": "MongoDB was contradicted by a later session and is no longer current", "any_of": ["mongodb", "mongo"] }
+        ]
+      },
+      "note": "Unlike the update case, session 1 states MongoDB with no hint it is temporary — only the later session 3 contradicts it. Consolidation across the sleep must detect that the two facts collide on the same slot (ledger's primary datastore) and let the newer observation win, retiring MongoDB from the active view. A memory that ranks by relevance or keeps both would surface Mongo and Postgres together, leaving the agent unable to tell which datastore is live."
+    }
+  ]
+}

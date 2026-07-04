@@ -122,6 +122,65 @@ habituation, staying silent). The third-party scoreboard in
 | 13 | `scattered_facts`       | Facts spread across separate replies are connected by one aggregate query; a later correction overrides an earlier scattered fact. |
 | 14 | `temporal_relevance`    | A fact changed over time returns its current value; the stale one is retired by the temporal relation, not by a `stale` flag. |
 
+### STM/LTM cases (situations 15–16) — the memory-state axis
+
+> **Different axis.** Everything above grades the **push path**: *what did the channel
+> deliver on a given turn?* Situations 15–16 grade the **memory state** instead: *after
+> reading a whole conversation and consolidating it, what is actually stored?* These cases
+> ship a raw `dialog` (role/content) plus `criteria` describing what memory must (and must
+> not) hold **after extraction/consolidation** — never anything about the model's reply.
+> They are mechanism-neutral and, per the benchmark's honesty rule, are **not tuned to any
+> engine**: a case that a simple static engine cannot satisfy stays as written.
+
+| # | `situation` | Proves |
+|---|-------------|--------|
+| 15 | `stm_extraction` | Facts scattered across a long session, corrections, an explicit directive, and distractors all resolve to the right STM contents by session end. |
+| 16 | `ltm_sleep`      | Facts consolidated during a "sleep" survive into a later session; updates supersede, contradictions let the newer win, link chains and derived facts are stored as structure. |
+
+#### Dialog + criteria format
+
+A dialog case replaces `turns`/`seed`-cue expectations with a free-text conversation and a
+memory-state contract. `seed` (optional) is the LTM already consolidated by earlier sleeps.
+
+```jsonc
+{
+  "situation": "ltm_sleep",
+  "format": "dialog",                    // marker; the runner routes on the `dialog` key
+  "cases": [
+    {
+      "id": "ltm-sleep-update-supersede",
+      "seed": [ { "slug": "...", "statement": "...", "kind": "project", "tier": "ltm" } ],
+      "dialog": [
+        { "session": "s1", "role": "user", "content": "..." },
+        { "session": "s2", "role": "user", "content": "..." }   // session change = a "sleep"/consolidation boundary
+      ],
+      "criteria": {
+        "must_remember": [
+          { "id": "php-new", "desc": "...", "all_of": ["php"], "any_of": ["8.4"], "kind": "project" }
+        ],
+        "must_not_remember": [
+          { "id": "php-old", "desc": "...", "any_of": ["8.1"] }   // checked against the ACTIVE view only
+        ],
+        "relations": [
+          { "kind": "links",        "from_any_of": ["shopfront"], "to_all_of": ["php-fpm"] },
+          { "kind": "derived_from", "conclusion_any_of": ["pgvector"], "from_all_of": ["yii2","postgres"] }
+        ]
+      },
+      "note": "why this case exists"
+    }
+  ]
+}
+```
+
+Matching is lowercase-substring. `all_of` = every token present, `any_of` = at least one.
+`must_remember` needs one **active** matching item; `must_not_remember` fails only if an
+**active** item matches (retired/superseded history flagged `active:false` is allowed).
+`relations` check structural edges (a `links` / `derived_from` list on the matching item).
+
+These cases run only against an engine implementing `ConsolidatingEngine` **or** a
+`--snapshots` file that supplies the consolidated memory state; otherwise the runner marks
+them **skipped** (never a failure). See [`../runner/README.md`](../runner/README.md).
+
 ## Grading
 
 `runner/run.php` loads every case, feeds each turn through an **engine**, and grades the
