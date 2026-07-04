@@ -14,7 +14,10 @@ protocol and compared against the vanilla **baseline** (no memory, 1/11) and the
 > `x/11` scores in *this* scoreboard are push-paradigm only — read `6/11` as "6 of the 10
 > push situations", not "6 of everything memory". The same engines have now **also** been
 > graded on the four general-memory situations (10 cases); those results are in
-> [§ v0.2.0 general-memory layer](#v020-general-memory-layer-task-483) below.
+> [§ v0.2.0 general-memory layer](#v020-general-memory-layer-task-483) below. Benchmark
+> `0.3.0` adds a third axis — **STM extraction / LTM "sleep"** (situations 15–16, 9 dialog
+> cases) that grade memory *state* after consolidation; results in
+> [§ v0.3.0 STM/LTM layer](#v030-stmltm-dialog-layer-extraction-and-sleep-task-488) below.
 
 All runs are **fully local, no external API key**: embeddings `bge-m3` (1024-dim)
 and LLM `qwen2.5:7b` via the local Ollama server. Adapters live in `adapters/`
@@ -285,3 +288,150 @@ lacks. RAG clears exactly the recall case it was built for (12a) and nothing tha
 retiring a stale value or connecting a contentless question. The dejavu reference clears
 all 10 with the same cue/gate/supersede machinery it uses on the push core — the two
 layers are the same mechanism gap measured on two different case families.
+
+---
+
+# v0.3.0 STM/LTM dialog layer: extraction and sleep (task #488)
+
+Benchmark `0.3.0` adds a **third axis**: nine dialog-format cases across two situations —
+**15 stm_extraction** (4 cases) and **16 ltm_sleep** (5 cases). These grade memory
+*state* after extraction/consolidation, not the push path: the runner asks each engine
+for the facts it holds *after* reading a free-text conversation (STM: within one session;
+LTM: consolidated across a session boundary — the "sleep"), then checks that state against
+mechanism-neutral `must_remember` / `must_not_remember` / relation criteria
+(`runner/lib/MemoryGrader.php`). Snapshots feed in via `--snapshots=FILE`.
+
+This axis exercises a **different half of dejavu** than the push layer. The plain
+`reference` engine is the *read* (push) path only — a cue-index model, not a text
+extractor — so it honestly **SKIPs all nine** (see `example-reference.json`:
+`stm 0/4 skipped 4`, `ltm 0/5 skipped 5`). To grade the *write* path the benchmark now
+ships a sibling engine, **`reference-consolidating`** (`runner/lib/ReferenceConsolidatingEngine.php`),
+which adds symbolic STM extraction + LTM "sleep" on top of the same push reference. Like the
+push reference it is a **hand-authored executable spec, not an LLM** — marker-word heuristics
+(hedge-gate, explicit-retraction supersede, directive→rule, `A → B → C` link chains,
+`LHS ⇒ conclusion` derivation) — and it exists to give the axis an out-of-the-box **ceiling**
+("what a good memory *should* end up holding"), the same role the push reference plays for
+situations 01–14. It scores **9/9** and is the `dejavu (reference-consolidating)` row below;
+no case is SKIP for it, and had a criterion needed a capability the symbolic mechanisms
+genuinely lack it would be an honest **FAIL**, not a skip (task #489).
+
+Among the *third-party* libraries the gradability still splits by mechanism: only those with
+an LLM extraction/consolidation step (**mem0**, **Graphiti**) can be graded on LTM; a pure
+vector buffer has no consolidation mechanism and is honestly **SKIP** on the LTM cases (per the
+fair-adapter rule, `adapters/SPEC.md §4` — never hand-roll a mechanism the library lacks). That
+rule binds the *adapters*, not the reference spec: `reference-consolidating` is dejavu's own
+design expressed symbolically, exactly as `reference` is for the push path.
+
+All runs use the same fully-local backend as the earlier layers: `bge-m3` embeddings +
+`qwen2.5:7b` LLM via Ollama; Graphiti on dockerized Neo4j 5.26. Consolidation harnesses:
+`adapters/consolidate_buffer.py` (baseline / RAG), `adapters/consolidate_mem0.py`,
+`adapters/consolidate_graphiti.py`; result documents are `*-v0.3.0.json` next to this file.
+
+## How each engine's snapshot was produced
+
+| engine | consolidation mechanism used | STM (15) | LTM (16) |
+|--------|------------------------------|:--------:|:--------:|
+| **baseline** (null memory) | none — holds nothing | graded (empty → floor) | **SKIP** (no consolidation) |
+| **rag-ollama** / **LangChain** | verbatim conversation buffer (vector store of the raw turns; no extraction) | graded (transcription) | **SKIP** (a buffer is not consolidation) |
+| **mem0** 2.0.11 | `add(infer=True)` — LLM extracts facts + ADD/UPDATE/DELETE management | graded (real) | graded (real) |
+| **Zep / Graphiti** 0.29.2 | episode ingestion → temporal fact edges with `invalid_at` invalidation | graded (real) | graded (real) |
+| **dejavu** `reference-consolidating` | symbolic STM extraction + LTM sleep (marker heuristics, no LLM) — `runner/lib/ReferenceConsolidatingEngine.php` | graded (ceiling) | graded (ceiling) |
+
+The reference-consolidating snapshot is emitted the same way as the third-party ones —
+`results/snapshots-reference-consolidating-v0.3.0.json`; or run it live:
+`php runner/run.php --engine=reference-consolidating --situation=stm_extraction,ltm_sleep`.
+
+`rag-ollama` and `LangChain` produce an **identical** STM state by construction — both are
+verbatim vector buffers with no extraction step, so "what's in memory" is the same set of raw
+turns for both. The vector index is irrelevant to a *state* grader (it inspects every stored
+item, not a retrieval result).
+
+## Scoreboard
+
+| engine | score | pass | S1 scat | S2 corr | S3 rule | S4 dist | L1 recall | L2 super | L3 link | L4 deriv | L5 contra |
+|--------|:-----:|:----:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| baseline (null memory) | **0.000** | 0/4 | ✗ | ✗ | ✗ | ✗ | · | · | · | · | · |
+| rag-ollama (verbatim buffer) | **0.000** | 0/4 | ✗ | ✗ | ✗ | ✗ | · | · | · | · | · |
+| LangChain (verbatim buffer) | **0.000** | 0/4 | ✗ | ✗ | ✗ | ✗ | · | · | · | · | · |
+| **Zep / Graphiti** 0.29.2 | **0.111** | 1/9 | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ᵃ | ✗ | ✗ | ✗ |
+| **mem0** 2.0.11 | **0.222** | 2/9 | ✗ | ✗ | ✗ | ✓ | ✓ | ✗ | ✗ | ✗ | ✗ |
+| **dejavu** `reference-consolidating` (ceiling)ᵇ | **1.000** | 9/9 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+Cases — **STM (15):** S1 facts scattered across a long session · S2 in-session correction
+(supersede) · S3 directive captured as a standing rule · S4 many options floated, one
+decided. **LTM (16):** L1 fact survives the sleep · L2 later session updates a fact
+(supersede) · L3 dependency-chain links · L4 derived fact (`derived_from`) · L5 cross-session
+contradiction (newer wins). `·` = SKIP (no consolidation mechanism). Score = passed ÷ gradable
+(SKIPs excluded from the denominator), so the RAG buffers score `0.000` on their 4 gradable
+STM cases, not on 9.
+
+ᵃ **Graphiti's one pass is an extraction accident, not the temporal mechanism** — see below.
+ᵇ This is now a **real graded run**, not orientation: the `reference-consolidating` engine
+(symbolic STM extraction + LTM sleep, no LLM) executes the write-path design and clears all
+nine — `9/9`, the honest ceiling for the axis. It is a hand-authored spec, the same status as
+the push `reference` (which still SKIPs this axis by design); L4 `derived_from` is satisfied by
+capturing the *explicitly stated* derivation (`Yii2 + PostgreSQL + embeddings ⇒ pgvector`),
+which is consolidation, not invention. Result doc: `reference-consolidating-v0.3.0.json`.
+
+## What the axis reveals
+
+- **mem0 leads (2/9) — and it is the only engine to pass an STM case.** On **S4 distractors**
+  its LLM extraction stored *only* the decision (`Redis 7 will be used for caching`) and
+  dropped all four brainstormed options (Memcached, Hazelcast, unlogged tables, KeyDB) — a
+  real read of "deliberation vs commitment" that a verbatim buffer cannot make. On **L1** it
+  cleanly consolidated `atlas` / `GPS traces` / `written in Go` across the sleep and held all
+  three. This is genuine LLM consolidation, not a shim trick.
+- **mem0's ceiling is the same supersede gap as v0.2.0, seen from the state side.** It keeps
+  **both** the old and the new value side by side rather than retiring the old one: PHP `8.1`
+  *and* `8.4` (L2), MongoDB *and* PostgreSQL (L5) both stay active — the local 7B tags the
+  change as `ADD`, never `UPDATE`. So `must_remember` (new value) passes while
+  `must_not_remember` (old value) fails, sinking L2 and L5. The STM traps fall the same way:
+  the FastAPI "not yet decided" mention is stored (S1), and the MySQL correction is folded
+  into a compound memory (`"…was MySQL 8 but the project actually uses PostgreSQL 16"`) that
+  still contains the retracted token (S2).
+- **Graphiti (1/9) — extraction collapses upstream of the graph, exactly as on the push/
+  general layers.** Most episodes yield **1 edge or 0** on the local 7B; short recall facts
+  (`Go`, `GPS`, `PostgreSQL`) never become edges, so L1 and nearly every `must_remember`
+  miss on recall before any temporal logic can run. Two sharper failure modes surfaced here:
+  - **Its lone pass (L2) is an accident of *non*-extraction.** The seed `PHP 8.1` produced
+    **zero edges** (nothing to retire), and only the `8.4` upgrade edge formed — so
+    `must_not_remember: 8.1` passes because the old fact was never extracted, **not** because
+    edge invalidation fired. The temporal mechanism (the one capability no other library has)
+    never actually ran; the case passes for the wrong reason.
+  - **Hallucination, not just omission.** On L3 (shopfront → php-fpm → nginx) the 7B invented
+    an entity pair absent from the entire dialogue — the single stored edge was
+    *"Nisha lives in Riverside Park."* Local-7B extraction does not merely under-produce; it
+    fabricates, and a fabricated edge is worse than a missing one.
+- **RAG buffers (0/4 STM) — the transcription profile.** They hold every recall fact *and*
+  every trap verbatim: `must_remember` hits, but `must_not_remember` trips on the stored
+  brainstorm turns (`"Maybe Redis, maybe Memcached, … Hazelcast"`), the FastAPI mention, the
+  retracted MySQL, the frontend camelCase. A buffer cannot tell *mentioned* from *decided* or
+  *corrected* from *current* — so it fails all four STM cases and is SKIP on LTM (no sleep,
+  no supersede, no dedup). baseline is the floor: it remembers nothing (0/4).
+- **No third-party library clears the relation cases (L3 link, L4 derived).** L3 needs
+  relational edges: mem0 (vector) exposes none; Graphiti has edges but extracted no correct
+  chain. L4 needs a `derived_from` edge inferring `pgvector` from `Yii2 + PostgreSQL`: mem0
+  stores `pgvector` as a plain fact with no derivation link, and Graphiti transcribes stated
+  facts rather than synthesising an inference edge. Both are honest structural misses, not
+  tuning gaps. The `reference-consolidating` ceiling *does* clear both — it builds the
+  `shopfront → php-fpm → nginx` link chain and links the `pgvector` conclusion back to its
+  `Yii2 + PostgreSQL` premises — showing the relations are capturable by a memory that stores
+  structure, and are missed by these libraries for want of that structure, not by case design.
+
+### Takeaway
+
+The STM/LTM axis confirms the v0.2.0 diagnosis from the *memory-state* side and localises the
+two walls precisely: **extraction** is the wall for graph memory (Graphiti fabricates or drops
+facts before the temporal graph can act), and **supersede** is the wall for vector memory (mem0
+and the buffers keep the retired value alongside the current one). mem0's LLM management is the
+only third-party mechanism that lands any consolidation case — and only where the local 7B
+extracts cleanly *and* no `UPDATE` is required (L1, S4). dejavu puts STM extraction and LTM
+sleep at its centre, and the `reference-consolidating` engine now makes that a **graded ceiling
+(9/9)** rather than a claim: a symbolic write path — hedge-gate, explicit-retraction supersede,
+directive→rule, link chains, stated-derivation edges — clears every case the LLM libraries miss,
+on the same criteria, with no model call. The plain push `reference` still SKIPs this axis by
+design; the two reference engines together mark the read and write halves of the same design.
+Same mechanism gap as the push and general-memory layers, measured on a third case family — and
+the same lesson: the walls (extraction reliability, supersede, relational structure) are
+mechanism gaps in the libraries, not artefacts of the benchmark, since a mechanism-neutral
+ceiling clears them all.

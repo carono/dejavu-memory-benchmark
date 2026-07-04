@@ -19,8 +19,11 @@ namespace Dejavu\Benchmark;
  *   L1  activation        direct cue match (=1.0) + one-hop spreading over links
  *   L2  salience-gate     stale/domain/project filter · supersede · habituation · budget
  *   L3  delivery          return the surviving slugs, ranked
+ *
+ * Not `final`: {@see ReferenceConsolidatingEngine} extends it to add the write
+ * (STM extraction / LTM sleep) path on top of this read path.
  */
-final class ReferenceEngine implements EngineInterface
+class ReferenceEngine implements EngineInterface
 {
     /** Max facts delivered per turn (hard budget, spec: start 3–5). */
     public const BUDGET = 3;

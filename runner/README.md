@@ -30,7 +30,8 @@ score denominator.
 
 | `--engine` | Class | What it grades |
 |------------|-------|----------------|
-| `reference` (default) | `ReferenceEngine` | Built-in executable spec of layers L0–L3. Always available, deterministic. |
+| `reference` (default) | `ReferenceEngine` | Built-in executable spec of layers L0–L3 (read/push path). Always available, deterministic. SKIPs the dialog (STM/LTM) cases. |
+| `reference-consolidating` | `ReferenceConsolidatingEngine` | The above **plus** a symbolic write path — STM extraction + LTM "sleep" — so it also grades the dialog cases (situations 15–16). Deterministic, no LLM. |
 | `push` | `DejavuPushEngine` | The real `dejavu-push.php` hook, via a shim (`DEJAVU_PUSH_CMD`). |
 
 ### Reference engine
@@ -50,11 +51,28 @@ what the `cross_session_recall` / `temporal_relevance` cases exercise.
 
 It is intentionally simple — it is the floor a real engine must clear, and a spec you can read.
 
-> **The reference engine does not run the dialog (STM/LTM) cases.** It is a symbolic
+> **The plain `reference` engine does not run the dialog (STM/LTM) cases.** It is a symbolic
 > cue-index push model, not a text extractor, so it cannot consolidate a free-text
 > conversation into facts. Those cases are reported *skipped* for it rather than tuned to
 > pass — the benchmark's honesty rule (§ cases/README.md) forbids shaping the algorithm to
-> the tests. Supply a consolidated snapshot to grade them (next section).
+> the tests. To grade them symbolically use **`--engine=reference-consolidating`** (a sibling
+> that adds a marker-based write path and reaches the axis ceiling of 9/9), or supply a
+> consolidated snapshot from your own memory (next section).
+
+### Reference-consolidating engine
+
+`runner/lib/ReferenceConsolidatingEngine.php` extends the reference engine with the *write*
+path the dialog cases grade — STM extraction + LTM "sleep" — using the same symbolic,
+no-LLM style: sentence-level extraction from user turns, a **hedge-gate** (a floated option
+is not a committed fact), **explicit-retraction supersede** (`scratch X` / `…, not X` / `not
+X anymore` / `ripped out X` retires the matching facts, within a session and across the
+sleep), **directive→rule** capture, `A → B → C` **link chains**, and `LHS ⇒ conclusion`
+**derivation** edges. It is a hand-authored executable spec — the write-path counterpart of
+the read-path reference — and gives the axis an out-of-the-box ceiling (`9/9`). Run it:
+
+```bash
+php runner/run.php --engine=reference-consolidating --situation=stm_extraction,ltm_sleep
+```
 
 ## Grading STM/LTM (dialog) cases
 

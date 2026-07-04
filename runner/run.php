@@ -31,6 +31,7 @@ const BENCHMARK_VERSION = '0.3.0';
 require __DIR__ . '/lib/EngineInterface.php';
 require __DIR__ . '/lib/ConsolidatingEngine.php';
 require __DIR__ . '/lib/ReferenceEngine.php';
+require __DIR__ . '/lib/ReferenceConsolidatingEngine.php';
 require __DIR__ . '/lib/DejavuPushEngine.php';
 require __DIR__ . '/lib/CaseLoader.php';
 require __DIR__ . '/lib/Grader.php';
@@ -150,10 +151,12 @@ function make_engine(string $name): EngineInterface
     switch ($name) {
         case 'reference':
             return new ReferenceEngine();
+        case 'reference-consolidating':
+            return new ReferenceConsolidatingEngine();
         case 'push':
             return new DejavuPushEngine();
         default:
-            throw new \RuntimeException("unknown engine '{$name}' (use: reference | push)");
+            throw new \RuntimeException("unknown engine '{$name}' (use: reference | reference-consolidating | push)");
     }
 }
 
@@ -260,7 +263,10 @@ dejavu-memory-benchmark runner
 
   php runner/run.php [options]
 
-  --engine=reference|push   engine under test (default: reference)
+  --engine=NAME             engine under test (default: reference)
+                            reference               push path only (SKIPs dialog)
+                            reference-consolidating push + STM/LTM consolidation
+                            push                    the live dejavu-push.php hook
   --cases=DIR               cases directory (default: <repo>/cases)
   --situation=NAME[,NAME]   run only cases of these situation(s), comma-separated
   --snapshots=FILE          JSON {caseId: memoryItem[]} for dialog (STM/LTM) cases;
