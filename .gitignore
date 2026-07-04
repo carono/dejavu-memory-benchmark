@@ -2,3 +2,8 @@
 # the reference example is tracked explicitly (see below).
 /results/*.json
 !/results/example-reference.json
+
+# third-party adapter shims are local scratch (need a venv + local models);
+# only the protocol spec is tracked so others can write their own.
+/adapters/*
+!/adapters/SPEC.md
