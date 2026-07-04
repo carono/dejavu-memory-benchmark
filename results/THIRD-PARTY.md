@@ -4,6 +4,17 @@ Task #480. Popular AI-agent memory libraries graded through the `--engine=push`
 protocol and compared against the vanilla **baseline** (no memory, 1/11) and the
 **reference** dejavu engine (ceiling, 11/11).
 
+> **Scope of this scoreboard.** These runs measure the **push paradigm** — the ten
+> canonical situations (11 cases, benchmark_version `0.1.0`) built around dejavu's push
+> read-path. That is deliberately the axis where pull-RAG libraries are weakest, and the
+> numbers below reflect exactly that. Benchmark `0.2.0` adds four **general-memory**
+> situations (11–14: long-session, cross-session, scattered-facts, temporal) that are
+> mechanism-neutral and *do* play to a good pull/RAG/graph system's strengths — see the
+> [scope disclaimer in the README](../README.md#general-memory-cases-situations-1114). The
+> third-party engines below have **not yet been re-run** on the general-memory layer, so
+> their scores here are push-paradigm only; a fuller picture will grade them on all 21
+> cases. Read `6/11` etc. as "6 of the 10 push situations", not "6 of everything memory".
+
 All runs are **fully local, no external API key**: embeddings `bge-m3` (1024-dim)
 and LLM `qwen2.5:7b` via the local Ollama server. Adapters live in `adapters/`
 (see `adapters/README.md`); result documents are the `*.json` next to this file.

@@ -27,6 +27,12 @@ Exit code: `0` all cases passed · `1` some failed · `2` runner error.
 - **L2** — gate: drop `stale`/`archived`, filter by active `domain` and `project`, apply `supersedes` (STM eviction), **habituation** (a fact surfaced this session is suppressed unless it re-fires ≥1.5× stronger), then rank by `salience × activation` and cap at a **budget of 3**.
 - **L3** — return the surviving slugs.
 
+**Sessions.** A turn may carry a `session` id. When it changes between turns the engine crosses
+a **session boundary**: it resets *session-scoped* state (habituation) while keeping long-term
+facts, so a fact suppressed in one session may surface again in the next. Turns without a
+`session` share one implicit session (single-session cases behave exactly as before). This is
+what the `cross_session_recall` / `temporal_relevance` cases exercise.
+
 It is intentionally simple — it is the floor a real engine must clear, and a spec you can read.
 
 ### Wiring the real hook (`--engine=push`)
@@ -41,13 +47,14 @@ The shim speaks one JSON object in / one JSON object out per turn:
 
 ```jsonc
 // stdin
-{ "prompt": "...", "context": { "project": "site-a" }, "seed": [ /* facts */ ], "reset": true }
+{ "prompt": "...", "context": { "project": "site-a" }, "seed": [ /* facts */ ], "reset": true, "session": "s1" }
 // stdout
 { "pushed": ["slug-a", "slug-b"] }
 ```
 
 `reset` is `true` on a case's first turn (load the seed into a scratch store, clear session
-state) and `false` afterwards. The shim owns all store-specific wiring — seeding the factStore,
+state) and `false` afterwards. `session` is the turn's session id (`null` when absent); reset
+your engine's per-session state when it changes between turns while keeping long-term facts. The shim owns all store-specific wiring — seeding the factStore,
 invoking `dejavu-push.php`, and mapping its emitted `additionalContext` back to slugs. See the
 protocol contract at the top of `runner/lib/DejavuPushEngine.php`.
 

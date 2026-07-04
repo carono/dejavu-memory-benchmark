@@ -1,0 +1,94 @@
+{
+  "situation": "temporal_relevance",
+  "cases": [
+    {
+      "id": "temporal-job-change",
+      "title": "A fact changed between sessions — return the current value, never the stale one",
+      "seed": [
+        {
+          "slug": "tp-job-old",
+          "statement": "The user works at Yandex.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "work", "match": "substring" }, { "type": "keyword", "value": "employer", "match": "substring" } ]
+        },
+        {
+          "slug": "tp-job-new",
+          "statement": "Later update: the user now works at Google.",
+          "kind": "user",
+          "salience": 0.6,
+          "supersedes": ["tp-job-old"],
+          "cues": [ { "type": "keyword", "value": "work", "match": "substring" }, { "type": "keyword", "value": "employer", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        { "session": "s1", "prompt": "just settling in at the new place" },
+        {
+          "session": "s2",
+          "prompt": "where do I work now?",
+          "expect_facts": ["tp-job-new"],
+          "reject_facts": ["tp-job-old"]
+        }
+      ],
+      "note": "The employer changed between sessions. Temporal actuality: the latest observation is the answer, and the superseded value must be silently retired — not surfaced next to the new one. A store that keeps every version and returns them all by relevance fails, because the agent cannot tell which employer is current."
+    },
+    {
+      "id": "temporal-schedule-supersede",
+      "title": "A newer observation retires an older one by time, without any stale flag",
+      "seed": [
+        {
+          "slug": "tp-release-old",
+          "statement": "The release is planned for June.",
+          "kind": "project",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "release", "match": "substring" }, { "type": "keyword", "value": "ship", "match": "substring" } ]
+        },
+        {
+          "slug": "tp-release-new",
+          "statement": "The release date was moved to August.",
+          "kind": "project",
+          "salience": 0.6,
+          "supersedes": ["tp-release-old"],
+          "cues": [ { "type": "keyword", "value": "release", "match": "substring" }, { "type": "keyword", "value": "ship", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "when do we release?",
+          "expect_facts": ["tp-release-new"],
+          "reject_facts": ["tp-release-old"]
+        }
+      ],
+      "note": "Neither fact carries a status:stale flag — the June date is outdated purely by time, because a later observation moved it. Freshness must be derived from the temporal relation (newer supersedes older), exactly what a temporal knowledge graph is supposed to do. This is the case that separates temporal-graph memory from a plain vector store, which would return both dates ranked by similarity."
+    },
+    {
+      "id": "temporal-latest-value-wins",
+      "title": "A drifting numeric value returns its most recent reading",
+      "seed": [
+        {
+          "slug": "tp-weight-old",
+          "statement": "The user weighed 80 kg.",
+          "kind": "user",
+          "salience": 0.55,
+          "cues": [ { "type": "keyword", "value": "weight", "match": "substring" } ]
+        },
+        {
+          "slug": "tp-weight-new",
+          "statement": "Most recent: the user weighs 76 kg.",
+          "kind": "user",
+          "salience": 0.55,
+          "supersedes": ["tp-weight-old"],
+          "cues": [ { "type": "keyword", "value": "weight", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "what's my current weight?",
+          "expect_facts": ["tp-weight-new"],
+          "reject_facts": ["tp-weight-old"]
+        }
+      ],
+      "note": "A value that changes over time (weight, price, version) must resolve to its latest reading. The old reading is not wrong history — it is just no longer current — so it is retired by supersede rather than deleted. The query returns exactly one number."
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "situation": "long_session_recall",
+  "cases": [
+    {
+      "id": "long-session-profile-recall",
+      "title": "A fact stated early is still recalled 30+ turns later, past distractors",
+      "seed": [
+        {
+          "slug": "ls-name",
+          "statement": "The user's name is Sergey.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "name", "match": "substring" } ]
+        },
+        {
+          "slug": "ls-job",
+          "statement": "The user works as a backend developer.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "profession", "match": "substring" }, { "type": "keyword", "value": "job title", "match": "substring" } ]
+        },
+        {
+          "slug": "ls-hobby",
+          "statement": "The user's hobby is bouldering (indoor rock climbing).",
+          "kind": "user",
+          "salience": 0.55,
+          "cues": [ { "type": "keyword", "value": "hobby", "match": "substring" } ]
+        },
+        {
+          "slug": "ls-stack",
+          "statement": "The user's main stack is PHP with the Yii2 framework.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "stack", "match": "substring" } ]
+        },
+        {
+          "slug": "ls-city",
+          "statement": "The user lives in Saint Petersburg.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "city", "match": "substring" }, { "type": "keyword", "value": "live in", "match": "substring" } ]
+        },
+        {
+          "slug": "ls-pet",
+          "statement": "The user has a cat named Marx.",
+          "kind": "user",
+          "salience": 0.5,
+          "cues": [ { "type": "keyword", "value": "pet", "match": "substring" }, { "type": "keyword", "value": "cat", "match": "exact" } ]
+        },
+        {
+          "slug": "ls-coffee",
+          "statement": "The user takes coffee black, no sugar.",
+          "kind": "user",
+          "salience": 0.5,
+          "cues": [ { "type": "keyword", "value": "coffee", "match": "substring" } ]
+        },
+        {
+          "slug": "ls-lang",
+          "statement": "The user is learning Spanish in the evenings.",
+          "kind": "user",
+          "salience": 0.5,
+          "cues": [ { "type": "keyword", "value": "learning", "match": "substring" }, { "type": "keyword", "value": "spanish", "match": "substring" } ]
+        },
+        {
+          "slug": "ls-car",
+          "statement": "The user drives a 2016 Skoda Octavia.",
+          "kind": "user",
+          "salience": 0.45,
+          "cues": [ { "type": "keyword", "value": "car", "match": "exact" }, { "type": "keyword", "value": "drive", "match": "substring" } ]
+        },
+        {
+          "slug": "ls-birthday",
+          "statement": "The user's birthday is in November.",
+          "kind": "user",
+          "salience": 0.45,
+          "cues": [ { "type": "keyword", "value": "birthday", "match": "substring" } ]
+        },
+        {
+          "slug": "ls-colleague-city",
+          "statement": "The user's teammate Dmitry is based in Moscow.",
+          "kind": "note",
+          "salience": 0.5,
+          "cues": [ { "type": "keyword", "value": "teammate", "match": "substring" }, { "type": "keyword", "value": "moscow", "match": "substring" } ]
+        },
+        {
+          "slug": "ls-legacy-stack",
+          "statement": "One legacy microservice at work is written in Python.",
+          "kind": "note",
+          "salience": 0.5,
+          "cues": [ { "type": "keyword", "value": "python", "match": "substring" }, { "type": "keyword", "value": "legacy", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        { "prompt": "ok" },
+        { "prompt": "thanks" },
+        { "prompt": "great" },
+        { "prompt": "sounds good" },
+        { "prompt": "understood" },
+        { "prompt": "go on" },
+        { "prompt": "cool" },
+        { "prompt": "right" },
+        { "prompt": "yes please" },
+        { "prompt": "makes sense" },
+        { "prompt": "let's keep going" },
+        { "prompt": "noted" },
+        { "prompt": "perfect" },
+        { "prompt": "sure thing" },
+        { "prompt": "mm-hmm" },
+        { "prompt": "ok" },
+        { "prompt": "thanks" },
+        { "prompt": "great" },
+        { "prompt": "sounds good" },
+        { "prompt": "understood" },
+        { "prompt": "go on" },
+        { "prompt": "cool" },
+        { "prompt": "right" },
+        { "prompt": "yes please" },
+        { "prompt": "makes sense" },
+        { "prompt": "let's keep going" },
+        { "prompt": "noted" },
+        { "prompt": "perfect" },
+        { "prompt": "sure thing" },
+        { "prompt": "mm-hmm" },
+        {
+          "prompt": "so, what's my name again?",
+          "expect_facts": ["ls-name"],
+          "reject_facts": ["ls-job", "ls-colleague-city"]
+        },
+        {
+          "prompt": "which city do I live in?",
+          "expect_facts": ["ls-city"],
+          "reject_facts": ["ls-colleague-city"]
+        },
+        {
+          "prompt": "what's my main stack?",
+          "expect_facts": ["ls-stack"],
+          "reject_facts": ["ls-legacy-stack"]
+        },
+        {
+          "prompt": "remind me of my hobby",
+          "expect_facts": ["ls-hobby"]
+        },
+        {
+          "prompt": "how do I take my coffee?",
+          "expect_facts": ["ls-coffee"]
+        }
+      ],
+      "note": "12 scattered profile facts (name, job, hobby, stack, city, pet, coffee, language, car, birthday) plus two look-alike distractors — a teammate in Moscow next to the user's own city, and a legacy Python service next to the user's PHP stack. Thirty neutral turns separate the facts from the queries: a good memory must still recall the early fact, and precision must hold — the city query returns Piter, not the teammate's Moscow; the stack query returns PHP/Yii2, not the Python distractor. A short-window or naive-similarity engine fails either recall (distance) or precision (distractor bleed)."
+    }
+  ]
+}

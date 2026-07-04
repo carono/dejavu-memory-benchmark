@@ -40,6 +40,8 @@ final class ReferenceEngine implements EngineInterface
     private array $facts = [];
     /** @var array<string,float> slug => strongest delivery score already surfaced this session */
     private array $surfaced = [];
+    /** Current session id (turn `session`/`session_id`); a change resets session-scoped state. */
+    private ?string $session = null;
 
     public function name(): string
     {
@@ -50,6 +52,7 @@ final class ReferenceEngine implements EngineInterface
     {
         $this->facts = [];
         $this->surfaced = [];
+        $this->session = null;
         foreach ($case['seed'] ?? [] as $fact) {
             $this->facts[$fact['slug']] = $fact;
         }
@@ -57,6 +60,18 @@ final class ReferenceEngine implements EngineInterface
 
     public function push(array $turn): array
     {
+        // A turn may carry a session id (multi-session protocol). Crossing a
+        // session boundary consolidates STM→LTM and resets *session-scoped*
+        // state — habituation is per-session, so a fact surfaced in an earlier
+        // session may surface again in a later one. Long-term facts persist.
+        // Turns without a session id all share one implicit session (backward
+        // compatible: the single-session cases behave exactly as before).
+        $session = $this->sessionId($turn);
+        if ($session !== $this->session) {
+            $this->surfaced = [];
+            $this->session = $session;
+        }
+
         $prompt = $this->normalize((string)($turn['prompt'] ?? ''));
         $context = $turn['context'] ?? [];
 
@@ -186,6 +201,13 @@ final class ReferenceEngine implements EngineInterface
     private function isHidden(array $fact): bool
     {
         return in_array($fact['status'] ?? 'confirmed', self::HIDDEN_STATUS, true);
+    }
+
+    /** Read a turn's session id (accepts `session` or `session_id`); null = implicit single session. */
+    private function sessionId(array $turn): ?string
+    {
+        $s = $turn['session'] ?? $turn['session_id'] ?? null;
+        return $s === null ? null : (string)$s;
     }
 
     private function cueHit(string $prompt, array $fact): bool

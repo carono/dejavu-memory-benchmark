@@ -1,0 +1,71 @@
+{
+  "situation": "scattered_facts",
+  "cases": [
+    {
+      "id": "scattered-progressive-profile",
+      "title": "Facts dropped across separate replies are connected by one aggregate query",
+      "seed": [
+        {
+          "slug": "sf-city",
+          "statement": "The user is from Saint Petersburg.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "about me", "match": "substring" }, { "type": "keyword", "value": "city", "match": "substring" } ]
+        },
+        {
+          "slug": "sf-work",
+          "statement": "The user works at Yandex.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "about me", "match": "substring" }, { "type": "keyword", "value": "employer", "match": "substring" } ]
+        },
+        {
+          "slug": "sf-age",
+          "statement": "The user is 32 years old.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "about me", "match": "substring" }, { "type": "keyword", "value": "age", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        { "prompt": "by the way, I grew up in Piter" },
+        { "prompt": "these days I'm over at Yandex" },
+        { "prompt": "turned thirty-two this year" },
+        {
+          "prompt": "what do you know about me?",
+          "expect_facts": ["sf-city", "sf-work", "sf-age"]
+        }
+      ],
+      "note": "The user scatters three facts across three natural-language replies ('grew up in Piter', 'over at Yandex', 'turned thirty-two'). A push engine does not self-trigger on the user's own statements — those facts are what the store already holds (the seed) — so the stating turns stay silent. The final open question ('what do you know about me?') carries no value, only a data-type meta-cue, and must connect all three scattered facts at once."
+    },
+    {
+      "id": "scattered-contradiction",
+      "title": "A later correction overrides an earlier scattered fact",
+      "seed": [
+        {
+          "slug": "sf2-city-old",
+          "statement": "Earlier the user said they live in Moscow.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "city", "match": "substring" }, { "type": "keyword", "value": "live", "match": "substring" } ]
+        },
+        {
+          "slug": "sf2-city-new",
+          "statement": "Correction: the user actually lives in Saint Petersburg now.",
+          "kind": "user",
+          "salience": 0.6,
+          "supersedes": ["sf2-city-old"],
+          "cues": [ { "type": "keyword", "value": "city", "match": "substring" }, { "type": "keyword", "value": "live", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "prompt": "which city do I live in now?",
+          "expect_facts": ["sf2-city-new"],
+          "reject_facts": ["sf2-city-old"]
+        }
+      ],
+      "note": "Two scattered mentions of the user's city partially contradict each other; the later one is a correction (declares supersedes). The query must return only the current city and never surface both — otherwise the agent sees Moscow and Saint Petersburg side by side and cannot tell which is live."
+    }
+  ]
+}

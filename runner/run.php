@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace Dejavu\Benchmark;
 
 const BENCHMARK_NAME = 'dejavu-memory-benchmark';
-const BENCHMARK_VERSION = '0.1.0';
+const BENCHMARK_VERSION = '0.2.0';
 
 require __DIR__ . '/lib/EngineInterface.php';
 require __DIR__ . '/lib/ReferenceEngine.php';

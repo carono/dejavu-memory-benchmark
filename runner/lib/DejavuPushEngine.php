@@ -12,9 +12,14 @@ namespace Dejavu\Benchmark;
  * Point the DEJAVU_PUSH_CMD env var at an executable that:
  *
  *   • reads ONE json object on stdin:
- *       {"prompt": "...", "context": {...}, "seed": [ {fact}, ... ], "reset": true|false}
+ *       {"prompt": "...", "context": {...}, "seed": [ {fact}, ... ], "reset": true|false,
+ *        "session": "s1"|null}
  *     `reset` is true on the first turn of each case (load the seed into a scratch
  *     store / clear session state), false on subsequent turns of the same case.
+ *     `session` is the turn's session id (multi-session cases). It stays the same
+ *     across turns of one session and changes at a session boundary; the shim
+ *     should reset *session-scoped* state (habituation) when it changes while
+ *     keeping long-term facts. `null` means one implicit session for the case.
  *   • writes ONE json object on stdout:
  *       {"pushed": ["slug-a", "slug-b"]}   // slugs delivered, in order
  *
@@ -59,6 +64,7 @@ final class DejavuPushEngine implements EngineInterface
             'context' => $turn['context'] ?? new \stdClass(),
             'seed' => $this->seed,
             'reset' => $this->firstTurn,
+            'session' => $turn['session'] ?? $turn['session_id'] ?? null,
         ];
         $this->firstTurn = false;
 

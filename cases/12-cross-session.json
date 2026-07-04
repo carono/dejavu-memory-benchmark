@@ -1,0 +1,140 @@
+{
+  "situation": "cross_session_recall",
+  "cases": [
+    {
+      "id": "cross-session-basic-recall",
+      "title": "A fact stated in session 1 is recalled in session 2",
+      "seed": [
+        {
+          "slug": "cs-employer",
+          "statement": "The user works at Yandex.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "work", "match": "substring" }, { "type": "keyword", "value": "employer", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        { "session": "s1", "prompt": "kicking off my first week here" },
+        {
+          "session": "s2",
+          "prompt": "where do I work again?",
+          "expect_facts": ["cs-employer"]
+        }
+      ],
+      "note": "The employer fact enters the store in session 1 (small talk, nothing to push yet) and must survive into a brand-new session 2 to answer the recall query. A session-scoped or window-limited memory that drops everything at session end fails this baseline."
+    },
+    {
+      "id": "cross-session-habituation-reset",
+      "title": "Habituation is per-session — a suppressed fact resurfaces in the next session",
+      "seed": [
+        {
+          "slug": "cs-coffee",
+          "statement": "The user drinks an oat-milk latte.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "coffee", "match": "substring" }, { "type": "keyword", "value": "latte", "match": "substring" }, { "type": "keyword", "value": "drink", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "session": "s1",
+          "prompt": "recommend a coffee for me",
+          "expect_facts": ["cs-coffee"]
+        },
+        {
+          "session": "s1",
+          "prompt": "actually, another coffee suggestion?",
+          "expect_empty": true,
+          "expect_suppressed": ["cs-coffee"]
+        },
+        {
+          "session": "s2",
+          "prompt": "recommend a coffee for me",
+          "expect_facts": ["cs-coffee"]
+        }
+      ],
+      "note": "Turn 1 surfaces the preference; turn 2 (same session) is habituated away so the channel does not nag. Turn 3 opens a fresh session — habituation is session-scoped, so the fact is allowed to surface again. This is the behaviour the runner's session boundary enforces: crossing a session id resets per-session suppression while keeping the long-term fact."
+    },
+    {
+      "id": "cross-session-role-update",
+      "title": "A role updated in a later session wins over the earlier value",
+      "seed": [
+        {
+          "slug": "cs-role-old",
+          "statement": "The user is a QA engineer.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "role", "match": "substring" }, { "type": "keyword", "value": "position", "match": "substring" } ]
+        },
+        {
+          "slug": "cs-role-new",
+          "statement": "Update: the user moved to a backend engineer role.",
+          "kind": "user",
+          "salience": 0.6,
+          "supersedes": ["cs-role-old"],
+          "cues": [ { "type": "keyword", "value": "role", "match": "substring" }, { "type": "keyword", "value": "position", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        { "session": "s1", "prompt": "hi, starting fresh today" },
+        {
+          "session": "s4",
+          "prompt": "what's my current role?",
+          "expect_facts": ["cs-role-new"],
+          "reject_facts": ["cs-role-old"]
+        }
+      ],
+      "note": "The role was captured in an early session and revised in a later one (the newer fact declares supersedes). By the time session 4 asks, only the current value may surface — the stale QA role must never resurface across the session gap. Same supersede semantics as STM-vs-LTM, but the correction lives in a different session than both the original and the query."
+    },
+    {
+      "id": "cross-session-history-aggregate",
+      "title": "Facts accumulated over several sessions are aggregated by a final query",
+      "seed": [
+        {
+          "slug": "cs-agg-city",
+          "statement": "The user is based in Kazan.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "about me", "match": "substring" }, { "type": "keyword", "value": "based", "match": "substring" } ]
+        },
+        {
+          "slug": "cs-agg-role",
+          "statement": "The user leads a small analytics team.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "about me", "match": "substring" }, { "type": "keyword", "value": "team", "match": "substring" }, { "type": "keyword", "value": "lead", "match": "substring" } ]
+        },
+        {
+          "slug": "cs-agg-tool",
+          "statement": "The user prefers PostgreSQL over MySQL.",
+          "kind": "user",
+          "salience": 0.6,
+          "cues": [ { "type": "keyword", "value": "about me", "match": "substring" }, { "type": "keyword", "value": "database", "match": "substring" } ]
+        }
+      ],
+      "turns": [
+        {
+          "session": "s1",
+          "prompt": "note where I'm based",
+          "expect_facts": ["cs-agg-city"]
+        },
+        {
+          "session": "s2",
+          "prompt": "by the way I lead the analytics team",
+          "expect_facts": ["cs-agg-role"]
+        },
+        {
+          "session": "s3",
+          "prompt": "I prefer that database for everything",
+          "expect_facts": ["cs-agg-tool"]
+        },
+        {
+          "session": "s5",
+          "prompt": "summarize everything you know about me",
+          "expect_facts": ["cs-agg-city", "cs-agg-role", "cs-agg-tool"]
+        }
+      ],
+      "note": "Three facts land in three separate sessions, each recalled by its own cue as it is mentioned. A later session asks for a summary via a shared meta-cue ('about me') and must aggregate all three at once (within the delivery budget). Tests both cross-session persistence and multi-fact aggregation on one prompt."
+    }
+  ]
+}

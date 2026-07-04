@@ -1,17 +1,17 @@
 {
     "benchmark": "dejavu-memory-benchmark",
-    "benchmark_version": "0.1.0",
+    "benchmark_version": "0.2.0",
     "engine": "reference",
-    "engine_version": "0.1.0",
+    "engine_version": "0.2.0",
     "submitter": "reference",
-    "generated_at": "2026-07-03T18:34:59+00:00",
+    "generated_at": "2026-07-04T07:19:54+00:00",
     "environment": {
         "php": "8.4.19",
         "os": "Linux"
     },
     "summary": {
-        "total": 11,
-        "passed": 11,
+        "total": 21,
+        "passed": 21,
         "failed": 0,
         "score": 1,
         "by_situation": {
@@ -54,6 +54,22 @@
             "personal_meta": {
                 "total": 1,
                 "passed": 1
+            },
+            "long_session_recall": {
+                "total": 1,
+                "passed": 1
+            },
+            "cross_session_recall": {
+                "total": 4,
+                "passed": 4
+            },
+            "scattered_facts": {
+                "total": 2,
+                "passed": 2
+            },
+            "temporal_relevance": {
+                "total": 3,
+                "passed": 3
             }
         }
     },
@@ -270,6 +286,501 @@
                     "prompt": "what is my profession?",
                     "pushed": [
                         "user-job"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "long-session-profile-recall",
+            "situation": "long_session_recall",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "ok",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 1,
+                    "prompt": "thanks",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 2,
+                    "prompt": "great",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 3,
+                    "prompt": "sounds good",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 4,
+                    "prompt": "understood",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 5,
+                    "prompt": "go on",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 6,
+                    "prompt": "cool",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 7,
+                    "prompt": "right",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 8,
+                    "prompt": "yes please",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 9,
+                    "prompt": "makes sense",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 10,
+                    "prompt": "let's keep going",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 11,
+                    "prompt": "noted",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 12,
+                    "prompt": "perfect",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 13,
+                    "prompt": "sure thing",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 14,
+                    "prompt": "mm-hmm",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 15,
+                    "prompt": "ok",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 16,
+                    "prompt": "thanks",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 17,
+                    "prompt": "great",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 18,
+                    "prompt": "sounds good",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 19,
+                    "prompt": "understood",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 20,
+                    "prompt": "go on",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 21,
+                    "prompt": "cool",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 22,
+                    "prompt": "right",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 23,
+                    "prompt": "yes please",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 24,
+                    "prompt": "makes sense",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 25,
+                    "prompt": "let's keep going",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 26,
+                    "prompt": "noted",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 27,
+                    "prompt": "perfect",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 28,
+                    "prompt": "sure thing",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 29,
+                    "prompt": "mm-hmm",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 30,
+                    "prompt": "so, what's my name again?",
+                    "pushed": [
+                        "ls-name"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 31,
+                    "prompt": "which city do I live in?",
+                    "pushed": [
+                        "ls-city"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 32,
+                    "prompt": "what's my main stack?",
+                    "pushed": [
+                        "ls-stack"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 33,
+                    "prompt": "remind me of my hobby",
+                    "pushed": [
+                        "ls-hobby"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 34,
+                    "prompt": "how do I take my coffee?",
+                    "pushed": [
+                        "ls-coffee"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "cross-session-basic-recall",
+            "situation": "cross_session_recall",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "kicking off my first week here",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 1,
+                    "prompt": "where do I work again?",
+                    "pushed": [
+                        "cs-employer"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "cross-session-habituation-reset",
+            "situation": "cross_session_recall",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "recommend a coffee for me",
+                    "pushed": [
+                        "cs-coffee"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 1,
+                    "prompt": "actually, another coffee suggestion?",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 2,
+                    "prompt": "recommend a coffee for me",
+                    "pushed": [
+                        "cs-coffee"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "cross-session-role-update",
+            "situation": "cross_session_recall",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "hi, starting fresh today",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 1,
+                    "prompt": "what's my current role?",
+                    "pushed": [
+                        "cs-role-new"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "cross-session-history-aggregate",
+            "situation": "cross_session_recall",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "note where I'm based",
+                    "pushed": [
+                        "cs-agg-city"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 1,
+                    "prompt": "by the way I lead the analytics team",
+                    "pushed": [
+                        "cs-agg-role"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 2,
+                    "prompt": "I prefer that database for everything",
+                    "pushed": [
+                        "cs-agg-tool"
+                    ],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 3,
+                    "prompt": "summarize everything you know about me",
+                    "pushed": [
+                        "cs-agg-city",
+                        "cs-agg-role",
+                        "cs-agg-tool"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "scattered-progressive-profile",
+            "situation": "scattered_facts",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "by the way, I grew up in Piter",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 1,
+                    "prompt": "these days I'm over at Yandex",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 2,
+                    "prompt": "turned thirty-two this year",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 3,
+                    "prompt": "what do you know about me?",
+                    "pushed": [
+                        "sf-age",
+                        "sf-city",
+                        "sf-work"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "scattered-contradiction",
+            "situation": "scattered_facts",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "which city do I live in now?",
+                    "pushed": [
+                        "sf2-city-new"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "temporal-job-change",
+            "situation": "temporal_relevance",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "just settling in at the new place",
+                    "pushed": [],
+                    "passed": true,
+                    "failures": []
+                },
+                {
+                    "index": 1,
+                    "prompt": "where do I work now?",
+                    "pushed": [
+                        "tp-job-new"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "temporal-schedule-supersede",
+            "situation": "temporal_relevance",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "when do we release?",
+                    "pushed": [
+                        "tp-release-new"
+                    ],
+                    "passed": true,
+                    "failures": []
+                }
+            ]
+        },
+        {
+            "id": "temporal-latest-value-wins",
+            "situation": "temporal_relevance",
+            "passed": true,
+            "turns": [
+                {
+                    "index": 0,
+                    "prompt": "what's my current weight?",
+                    "pushed": [
+                        "tp-weight-new"
                     ],
                     "passed": true,
                     "failures": []

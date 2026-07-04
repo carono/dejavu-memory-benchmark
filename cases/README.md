@@ -7,7 +7,7 @@ seed facts, so a case can be graded without a live `factStore`.
 
 ```jsonc
 {
-  "situation": "L1_keyword_recall",     // one of the 10 canonical situations
+  "situation": "L1_keyword_recall",     // one of the situations (see the table below)
   "cases": [
     {
       "id": "l1-nginx-reload",          // globally unique, kebab-case
@@ -56,6 +56,7 @@ A turn is one harness event (a prompt) plus what the memory channel is expected 
 ```jsonc
 {
   "prompt": "reload nginx after editing the config",
+  "session": "s1",                        // optional session id (multi-session cases)
   "context": {                            // optional harness context for L2 gating
     "project": "site-a",                  // active project → project isolation
     "domain": "web"                       // active domain → domain disambiguation
@@ -71,7 +72,27 @@ Assertions are ANDed. A turn passes only if every present assertion holds. A cas
 passes only if all its turns pass. `expect_empty: true` is mutually exclusive with
 `expect_facts`.
 
-## The 10 situations
+### Sessions (multi-turn & multi-session)
+
+The `turns` array is already **multi-turn**: turns run in order and the engine keeps
+per-session state across them (habituation, STM eviction), so a fact seeded early can be
+queried many turns later (see `long_session_recall`).
+
+`session` (alias `session_id`) marks a turn's **session**. Turns sharing an id are one
+session; when the id changes between turns, the engine crosses a **session boundary** —
+it consolidates STM→LTM and resets *session-scoped* state (habituation), while long-term
+facts persist. Turns without a `session` all share one implicit session, so existing
+single-session cases are unaffected. Use it for cross-session recall, per-session
+habituation reset, and cross-session updates (`cross_session_recall`, `temporal_relevance`).
+
+## The situations
+
+### Push-paradigm core (situations 01–10)
+
+These are the ten canonical situations from the dejavu design task; they isolate the
+mechanics unique to **push** memory (symbolic cue-index, STM/LTM interplay, gates,
+habituation, staying silent). The third-party scoreboard in
+[`../results/THIRD-PARTY.md`](../results/THIRD-PARTY.md) is measured on this set.
 
 | # | `situation` | Proves |
 |---|-------------|--------|
@@ -85,6 +106,21 @@ passes only if all its turns pass. `expect_empty: true` is mutually exclusive wi
 | 08 | `multi_project`       | Project A rules do not leak into project B. |
 | 09 | `negative`            | No matching fact ⇒ nothing injected (fail-open). |
 | 10 | `personal_meta`       | Personal facts recalled by data-type meta-cues. |
+
+### General-memory cases (situations 11–14)
+
+> **Scope note.** Situations 01–10 measure the **push paradigm** specifically. The cases
+> below test **general memory capability** — the things *any* good memory system (push or
+> pull, RAG or graph) should get right regardless of mechanism. They are mechanism-neutral:
+> phrased as recall/precision goals, not as push internals. A strong memory library should
+> pass them; they are here so the benchmark reflects general memory, not only push.
+
+| # | `situation` | Proves |
+|---|-------------|--------|
+| 11 | `long_session_recall`   | A fact stated early is recalled 30+ turns later; look-alike distractors stay silent. |
+| 12 | `cross_session_recall`  | A fact from an earlier session is recalled later; habituation resets per session; updates and history aggregate across sessions. |
+| 13 | `scattered_facts`       | Facts spread across separate replies are connected by one aggregate query; a later correction overrides an earlier scattered fact. |
+| 14 | `temporal_relevance`    | A fact changed over time returns its current value; the stale one is retired by the temporal relation, not by a `stale` flag. |
 
 ## Grading
 
